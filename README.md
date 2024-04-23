@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# E-commerce ShopFusion
 
-## Getting Started
+Welcome to the ShopFusion E-commerce project. This website is built using Next.js NextAuth Mongoose Zustand Tailwind CSS.
 
-First, run the development server:
+## Overview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+This project aims to create a responsive E-commerce website with features including sign-in, sign-up, navigation, footer, and various sections on the home page.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Features Implemented
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+- **Sign-In Page**: Allows users to sign in to their account.
+- **Sign-Up Page**: Allows new users to create an account.
+- **Navbar**: Navigation bar for easy navigation across the website.
+- **Footer**: Footer section providing additional information and links.
+- **Home Page**:
+  - **Header Section**: Welcomes users to the website.
+  - **Popular Categories Section**: Displays popular blog categories.
+  - **Most Popular Section**: Highlights the most popular blog posts.
+  - **Categories and Pagination**: Allows users to browse different blog categories and paginate through posts.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Features Planned (To be completed)
 
-## Learn More
+- **User Authentication**: Implement authentication for users.
+- **User Dashboard**: Provide a dashboard for users to manage their posts and profile.
+- **Comments and Interactions**: Enable users to comment on blog posts and interact with each other.
+- **Search Functionality**: Implement search functionality to search for blog posts.
 
-To learn more about Next.js, take a look at the following resources:
+## Technologies Used
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- Next.js
+- Next-Auth
+- bcryptjs
+- next-cloudinary
+- axios
+- react-multi-select-component
+- Tailwind CSS
+- react-toastify
+- Mongoose
+- Zustand
