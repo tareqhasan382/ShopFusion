@@ -1,0 +1,45 @@
+import React, { useState } from 'react'
+
+const CollectionSelect = ({placeholder,
+    value,
+    onChange,
+    onRemove,}) => {
+        const [inputValue, setInputValue] = useState("");
+
+        const addValue = (item) => {
+          onChange(item);
+          setInputValue("");
+        };
+  return (
+    <>
+      <input
+        placeholder={placeholder}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            addValue(inputValue);
+          }
+        }}
+      />
+
+      <div className="flex gap-1 flex-wrap mt-4">
+        {value.map((item, index) => (
+          <div key={index} className="bg-grey-1 text-white">
+            {item}
+            <button
+              className="ml-1 rounded-full outline-none hover:bg-red-1"
+              onClick={() => onRemove(item)}
+              type="button"
+            >
+              <hr className="h-3 w-3" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+export default CollectionSelect;
