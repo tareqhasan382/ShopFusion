@@ -37,3 +37,8 @@ This project aims to create a responsive E-commerce website with features includ
 - react-toastify
 - Mongoose
 - Zustand
+
+## Explore Project with Dashboard
+
+- admin@gmail.com
+- admin123

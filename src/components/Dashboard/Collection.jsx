@@ -80,7 +80,6 @@ const Collection = ({ page }) => {
   }
 };
 
-
   return (
     <div>
       <div className=" flex flex-col gap-5 py-5 ">
@@ -102,7 +101,7 @@ const Collection = ({ page }) => {
                       {item?.title}
                     </td>
                     <td className="border px-4 py-2" data-label="Name">
-                      10
+                      {item?.products.length}
                     </td>
                     <td
                       className="border px-4 py-2 flex flex-row gap-4 "

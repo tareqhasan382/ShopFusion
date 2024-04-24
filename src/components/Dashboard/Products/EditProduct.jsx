@@ -29,7 +29,8 @@ const sizeOptions = [
   { label: "Extra-Large", value: "extra-large" },
 ];
 
-const ProductForm = () => {
+const EditProduct = ({productId}) => {
+
   const router = useRouter();
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -63,10 +64,30 @@ const ProductForm = () => {
       console.log(error);
     }
   };
+ const getProduct = async (productId) => {
+    try {
+      const result = await fetch(`${BASEURL}/api/product/${productId}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+      if (!result.ok) {
+        throw new Error("Failed to fetch data");
+      }
+      const data = await result.json();
+      setTitle(data?.data.title)
+      setDescription(data?.data.description)
+      setCategory(data?.data.category)
+      setPrice(parseFloat(data?.data.price?.["$numberDecimal"] ?? 0).toFixed(2))
+      setCost(parseFloat(data?.data.cost?.["$numberDecimal"] ?? 0).toFixed(2))
 
+    } catch (error) {
+      console.log(error);
+    }
+  };
   useEffect(() => {
     getCollection();
-  }, []);
+    getProduct(productId);
+  }, [productId]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -222,4 +243,7 @@ const response = await fetch(`${BASEURL}/api/product`, {
   );
 };
 
-export default ProductForm;
+export default EditProduct;
+
+
+//EditProduct

@@ -2,32 +2,59 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { connectMongodb } from "../../../../lib/mongodb";
+import ProductModel from "../../../../lib/models/ProductModel";
 import CollectionModel from "../../../../lib/models/CollectionModel";
+
 export const POST = async (req, res) => {
   try {
     const session = await getServerSession(authOptions);
-    // console.log("server session:", session);
     if (!session?.user) {
       return new NextResponse("Unauthorized", { status: 403 });
     }
     await connectMongodb();
-    const { title, description, image } = await req.json();
-    // console.log("data:", title, description);
+    const {
+      title,
+      description,
+      media,
+      category,
+      collections,
+      tags,
+      sizes,
+      colors,
+      price,
+      cost,
+    } = await req.json();
 
-    const existingCollection = await CollectionModel.findOne({ title: title });
-
-    if (existingCollection) {
-      return new NextResponse("Collection already exists", { status: 400 });
+    if (!title || !description || !category || !price) {
+      return new NextResponse("Not enough data to create a product", {
+        status: 400,
+      });
     }
 
-    if (!title || !image) {
-      return new NextResponse("Title and image are required", { status: 400 });
+    const result = await ProductModel.create({
+      title,
+      description,
+      media,
+      category,
+      collections,
+      tags,
+      sizes,
+      colors,
+      price,
+      cost,
+    });
+    if (collections) {
+      for (const collectionId of collections) {
+        const collection = await CollectionModel.findById(collectionId);
+        if (collection) {
+          collection.products.push(result._id);
+          await collection.save();
+        }
+      }
     }
-
-    const result = await CollectionModel.create({ title, description, image });
     return NextResponse.json(
       {
-        message: "Collection created successfully.",
+        message: "Product created successfully.",
         success: true,
         data: result,
       },
@@ -35,7 +62,7 @@ export const POST = async (req, res) => {
     );
     // return NextResponse.json(result, { status: 200 });
   } catch (err) {
-    console.log("[collections_POST]", err);
+    console.log("[Product_POST]", err);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 };
@@ -43,7 +70,7 @@ export const POST = async (req, res) => {
 export async function GET(req, res) {
   const { searchParams } = new URL(req.url);
   const page = searchParams.get("page") || 1;
-  const limit = searchParams.get("limit") || 100;
+  const limit = searchParams.get("limit") || 3;
   const title = searchParams.get("title");
   const query = {};
   if (title) {
@@ -52,8 +79,8 @@ export async function GET(req, res) {
   try {
     await connectMongodb();
 
-    const count = await CollectionModel.countDocuments(query);
-    const result = await CollectionModel.find(query)
+    const count = await ProductModel.countDocuments(query);
+    const result = await ProductModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit);
 
