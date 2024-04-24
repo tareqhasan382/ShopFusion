@@ -19,7 +19,9 @@ export async function GET(req, { params }) {
         { status: 201 }
       );
     }
-    const result = await ProductModel.findById(productId);
+    const result = await ProductModel.findById(productId).populate(
+      "collections"
+    );
     return NextResponse.json(
       {
         message: "Product fetch successfully.",

@@ -1,5 +1,6 @@
 "use client";
 import { BASEURL } from "@/app/(home)/page";
+import UploadForm from "@/components/Upload/UploadForm";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -33,6 +34,7 @@ const ProductForm = () => {
   const router = useRouter();
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [photos, setPhotos] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [selected, setSelected] = useState([]);
@@ -70,6 +72,7 @@ const ProductForm = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if(!photos.length)return toast.warning("please select photos!")
     const collectionIds = selected.map((item) => item.value);
     const selectedTagValues = selectedTags.map((tag) => tag.value);
     const selectedSizeValues = selectedSize.map((tag) => tag.value);
@@ -83,7 +86,8 @@ const ProductForm = () => {
       sizes: selectedSizeValues,
       colors: selectedColorValues,
       price:price,
-      cost:cost
+      cost:cost,
+      media:photos
     };
 const response = await fetch(`${BASEURL}/api/product`, {
         method: "POST",
@@ -101,9 +105,10 @@ const response = await fetch(`${BASEURL}/api/product`, {
       }
     
   };
-
+  // console.log("photos:",photos)
   return (
     <div className=" mb-20  ">
+      <div><UploadForm setPhotos={setPhotos} /></div>
       <form onSubmit={handleSubmit} className="flex flex-col">
         <input
           className=" my-3 lg:w-[1250px]  w-full p-2 lg:text-4xl text-lg border-gray-300 border-[1px] rounded-md  focus:border-gray-600 text-black"
@@ -202,7 +207,6 @@ const response = await fetch(`${BASEURL}/api/product`, {
             />
           </div>
         </div>
-
         <div className="flex items-center gap-8 py-4">
           <button
             type="submit"

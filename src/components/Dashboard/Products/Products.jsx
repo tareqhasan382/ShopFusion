@@ -90,8 +90,8 @@ const Products = ({ page }) => {
               <thead className=" hover:bg-red-200 bg-red-300 ">
                 <tr>
                   <th className="px-4 py-2  text-left">Title</th>
-                  <th className="px-4 py-2  text-left">Cost</th>
-                  <th className="px-4 py-2  text-left">Price</th>
+                  <th className="px-4 py-2  text-left">Cost($)</th>
+                  <th className="px-4 py-2  text-left">Price($)</th>
                   <th className="px-4 py-2 text-left">Action</th>
                 </tr>
               </thead>

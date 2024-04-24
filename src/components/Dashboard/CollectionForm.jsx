@@ -138,7 +138,7 @@ const handleImageUpload = async (event) => {
            
             <input type="file" accept="image/*" onChange={handleImageUpload} />
           </div>
-          <div className=" flex items-center gap-8 ">
+          <div className=" flex items-center gap-8 py-4 ">
           <button
             type="submit"
             disabled={loading}

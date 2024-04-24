@@ -82,7 +82,8 @@ export async function GET(req, res) {
     const count = await ProductModel.countDocuments(query);
     const result = await ProductModel.find(query)
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .populate("collections");
 
     return NextResponse.json(
       {

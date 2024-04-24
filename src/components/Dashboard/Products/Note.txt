@@ -1,12 +1,10 @@
-"use client"
-import React, { useEffect, useState } from "react";
+"use client";
 import { BASEURL } from "@/app/(home)/page";
 import Link from "next/link";
-
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 import { MultiSelect } from "react-multi-select-component";
 import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
-
 const colorOptions = [
   { label: "White", value: "white" },
   { label: "Blue", value: "blue" },
@@ -20,14 +18,13 @@ const colorOptions = [
   { label: "Pink", value: "pink" },
 ];
 
-const EditProduct = ({ productId }) => {
+const EditProduct = ({productId}) => {
+
   const router = useRouter();
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState([]);
   const [selectedColor, setSelectedColor] = useState([]);
-  const [product, setProduct] = useState({ collections: [], colors: [] });
-
   const getCollection = async () => {
     try {
       const result = await fetch(`${BASEURL}/api/collection`, {
@@ -38,6 +35,7 @@ const EditProduct = ({ productId }) => {
         throw new Error("Failed to fetch data");
       }
       const data = await result.json();
+      
       setOptions(
         data?.data.map((collection) => ({
           label: collection.title,
@@ -48,8 +46,7 @@ const EditProduct = ({ productId }) => {
       console.log(error);
     }
   };
-
-  const getProduct = async (productId) => {
+ const getProduct = async (productId) => {
     try {
       const result = await fetch(`${BASEURL}/api/product/${productId}`, {
         method: "GET",
@@ -59,14 +56,11 @@ const EditProduct = ({ productId }) => {
         throw new Error("Failed to fetch data");
       }
       const data = await result.json();
-      setProduct(data?.data);
-      setSelected(data?.data.collections.map((collection) => ({ label: collection.title, value:collection})));
-      setSelectedColor(data?.data.colors.map((color) => ({ label: color, value: color })));
+      // here collections , colors ,
     } catch (error) {
       console.log(error);
     }
   };
-
   useEffect(() => {
     getCollection();
     getProduct(productId);
@@ -78,35 +72,33 @@ const EditProduct = ({ productId }) => {
     const selectedColorValues = selectedColor.map((tag) => tag.value);
     const data = {
       collections: collectionIds,
+      
       colors: selectedColorValues,
+     
     };
-
-    try {
-      const response = await fetch(`${BASEURL}/api/product/${productId}`, {
-        method: "PUT",
+const response = await fetch(`${BASEURL}/api/product`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
       if (response.ok) {
         setLoading(false);
-        toast.success("Product Updated Successfully");
+        toast.success("Product Created Successfully");
         router.push("/admin/products");
       } else {
         setLoading(false);
-        toast.error("Product Update Failed");
+        toast.error("Product Created Failed");
       }
-    } catch (error) {
-      console.log(error);
-      setLoading(false);
-      toast.error("Product Update Failed");
-    }
+    
   };
 
   return (
-    <div className="mb-20">
+    <div className=" mb-20  ">
       <form onSubmit={handleSubmit} className="flex flex-col">
-        <div className="lg:grid lg:grid-cols-3 md:grid md:grid-cols-1 w-full gap-5 py-5">
+       
+        <div className=" lg:grid lg:grid-cols-3 md:grid md:grid-cols-1 w-full gap-5 py-5  ">
+
           <div className="flex flex-col py-2">
             <label htmlFor="collection">Collections</label>
             <MultiSelect
@@ -118,6 +110,8 @@ const EditProduct = ({ productId }) => {
               disableSearch={false}
             />
           </div>
+          
+          
           <div className="flex flex-col py-2">
             <label htmlFor="colors">Colors</label>
             <MultiSelect
@@ -130,6 +124,7 @@ const EditProduct = ({ productId }) => {
             />
           </div>
         </div>
+
         <div className="flex items-center gap-8 py-4">
           <button
             type="submit"
@@ -150,3 +145,5 @@ const EditProduct = ({ productId }) => {
 };
 
 export default EditProduct;
+
+
