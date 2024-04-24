@@ -83,7 +83,7 @@ const Collection = ({ page }) => {
   return (
     <div>
       <div className=" flex flex-col gap-5 py-5 ">
-        {loading && <Loader />}
+        
         <div>
           <div className="overflow-x-auto">
             <table className="min-w-full table-auto border-collapse">
@@ -95,7 +95,8 @@ const Collection = ({ page }) => {
                 </tr>
               </thead>
               <tbody>
-                {collections?.data?.map((item, index) => (
+              {loading && <tr className="flex items-center justify-center h-full "><td className="animate-spin rounded-full border-t-4 border-blue-500 border-solid h-12 w-12"></td></tr>}
+                {collections.length? collections?.data?.map((item, index) => (
                   <tr key={index} className=" hover:bg-gray-300 ">
                     <td className="border px-4 py-2" data-label="Name">
                       {item?.title}
@@ -129,17 +130,14 @@ const Collection = ({ page }) => {
                       
                     </td>
                   </tr>
-                ))}
+                )) :  <tr>
+                <td colSpan="4" className="text-center py-2 text-body-bold ">No Data found in Collections!</td>
+              </tr> }
               </tbody>
             </table>
           </div>
         </div>
-        {/* {collections?.data?.length > 0 ?
-          collections?.data?.map((item) => (
-            <div key={item._id}>
-              <h1>{item?.title}</h1>
-            </div>
-          )) : (<h1>No Data found!</h1>) } */}
+       
       </div>
       <Pagination page={page} hasNext={hasNext} hasPrev={hasPrev} />
     </div>
