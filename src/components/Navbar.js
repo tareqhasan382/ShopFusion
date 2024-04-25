@@ -16,9 +16,11 @@ const Navbar = () => {
       <div className=" px-5 flex items-center justify-between py-4 relative">
         <div className="flex items-center justify-center md:space-x-10 lg:space-x-20 ">
           <div className="font-semibold text-2xl">
-            <h1 className=" gradient-text text-transparent text-heading3-bold ">
-              ShopFusion
-            </h1>
+            <Link href="/">
+              <h1 className=" gradient-text text-transparent text-heading3-bold ">
+                ShopFusion
+              </h1>
+            </Link>
           </div>
           <nav className=" max-md:hidden flex flex-row items-center  ">
             <ul className="flex items-center space-x-3  font-semibold text-[15px]">
@@ -70,13 +72,18 @@ const Navbar = () => {
           </nav>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <div className=" cursor-pointer ">
+        <div className=" flex items-center space-x-2">
+          <div className=" cursor-pointer  ">
             <Heart color="#f40b0b" />
           </div>
-          <div className=" cursor-pointer ">
-            <ShoppingCart />
-          </div>
+          <Link href="/cart">
+            <div className=" flex flex-col top-2 cursor-pointer  ">
+              <div className=" absolute top-3 px-2  w-6 ">10</div>
+              <div>
+                <ShoppingCart />
+              </div>
+            </div>
+          </Link>
 
           <div
             onClick={() => setShowProfile(!showProfile)}

@@ -79,7 +79,7 @@ const Products = ({ page }) => {
     console.log(error);
   }
 };
-
+ //console.log("products:",products)
   return (
     <div>
       <div className=" flex flex-col gap-5 py-5 ">
@@ -97,7 +97,7 @@ const Products = ({ page }) => {
               </thead>
               <tbody>
               {loading && <tr className="flex items-center justify-center h-full "><td className="animate-spin rounded-full border-t-4 border-blue-500 border-solid h-12 w-12"></td></tr>}
-                {products.length? products?.data?.map((item, index) => (
+                {products?.data?.length>0? products?.data?.map((item, index) => (
                   <tr key={index} className=" hover:bg-gray-300 ">
                     <td className="border px-4 py-2" data-label="Name">
                       {item?.title}

@@ -8,20 +8,20 @@ export async function GET(req, { params }) {
   const { productId } = params;
   try {
     await connectMongodb();
-    const session = await getServerSession(authOptions);
-    if (!session.user) {
-      return NextResponse.json(
-        {
-          message: "User UnAuthorized.",
-          success: "False",
-          data: null,
-        },
-        { status: 201 }
-      );
-    }
-    const result = await ProductModel.findById(productId).populate(
-      "collections"
-    );
+    // const session = await getServerSession(authOptions);
+
+    // if (!session.user) {
+    //   return NextResponse.json(
+    //     {
+    //       message: "User UnAuthorized.",
+    //       success: "false",
+    //       data: null,
+    //     },
+    //     { status: 401 }
+    //   );
+    // }
+    const result = await ProductModel.findById(productId);
+    //console.log("result:", result);
     return NextResponse.json(
       {
         message: "Product fetch successfully.",

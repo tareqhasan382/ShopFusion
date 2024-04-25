@@ -2,7 +2,6 @@
 import { BASEURL } from "@/app/(home)/page";
 import React, { useEffect, useState } from "react";
 import Pagination from "./Pagination";
-import Loader from "../Loader";
 import { Trash2 } from "lucide-react";
 import { FilePenLine } from "lucide-react";
 import { toast } from "react-toastify";
@@ -32,10 +31,11 @@ const Collection = ({ page }) => {
         if (!result.ok) {
           throw new Error("Failed to fetch data");
         }
-
+        
         const data = await result.json();
+        
         setLoading(false);
-        setCollections(data);
+        setCollections(data?.data);
       } catch (error) {
         setLoading(false);
         console.log(error);
@@ -79,7 +79,7 @@ const Collection = ({ page }) => {
     console.log(error);
   }
 };
-
+//console.log("collections:",collections)
   return (
     <div>
       <div className=" flex flex-col gap-5 py-5 ">
@@ -96,7 +96,7 @@ const Collection = ({ page }) => {
               </thead>
               <tbody>
               {loading && <tr className="flex items-center justify-center h-full "><td className="animate-spin rounded-full border-t-4 border-blue-500 border-solid h-12 w-12"></td></tr>}
-                {collections.length? collections?.data?.map((item, index) => (
+                {collections?.length >0? collections?.map((item, index) => (
                   <tr key={index} className=" hover:bg-gray-300 ">
                     <td className="border px-4 py-2" data-label="Name">
                       {item?.title}

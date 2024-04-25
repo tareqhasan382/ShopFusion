@@ -8,8 +8,8 @@ import Footer from "@/components/Footer";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Home Page",
-  description: "Home page",
+  title: "ShopFusion",
+  description: "ShopFusion E-commerce ",
 };
 
 export default function RootLayout({ children }) {
@@ -19,14 +19,12 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <ToastContainer />
           <main>
-            <div className=" w-screen sticky top-0 z-50 bg-slate-200 text-black ">
+            <div className=" sticky top-0 z-50 bg-slate-200 text-black ">
               <Navbar />
             </div>
-            <div className="flex flex-col bg-white text-black w-[100vw] overflow-x-hidden items-center ">
-              {children}
-            </div>
+            <div className=" ">{children}</div>
           </main>
-          <div className=" w-screen bg-slate-200 text-black ">
+          <div className=" bg-slate-200 text-black ">
             <Footer />
           </div>
         </AuthProvider>
@@ -34,3 +32,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+// flex flex-col bg-white text-black w-[100vw] overflow-x-hidden items-center
