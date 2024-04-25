@@ -2,10 +2,15 @@
 
 import useCart from "@/store/useCart";
 import { MinusCircle, PlusCircle, Trash } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "react-toastify";
+import { BASEURL } from "../page";
 
 const Cart = () => {
+  const { data: session } = useSession();
   const router = useRouter();
   // const { user } = useUser();
   const cart = useCart();
@@ -20,28 +25,28 @@ const Cart = () => {
   const totalRounded = total;
 
   // cartItem.item.price
-  // const customer = {
-  //   clerkId: user?.id,
-  //   email: user?.emailAddresses[0].emailAddress,
-  //   name: user?.fullName,
-  // };
+  const customer = {
+    userId: session?.user._id,
+    email: session?.user.email,
+    name: session?.user.name,
+  };
 
   const handleCheckout = async () => {
-    // try {
-    //   if (!user) {
-    //     router.push("sign-in");
-    //   } else {
-    //     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/checkout`, {
-    //       method: "POST",
-    //       body: JSON.stringify({ cartItems: cart.cartItems, customer }),
-    //     });
-    //     const data = await res.json();
-    //     window.location.href = data.url;
-    //     console.log(data);
-    //   }
-    // } catch (err) {
-    //   console.log("[checkout_POST]", err);
-    // }
+    try {
+      if (!session?.user) {
+        router.push("sign-in");
+      } else {
+        const res = await fetch(`${BASEURL}/api/checkout`, {
+          method: "POST",
+          body: JSON.stringify({ cartItems: cart.cartItems, customer }),
+        });
+        const data = await res.json();
+        window.location.href = data.url;
+        console.log(data);
+      }
+    } catch (err) {
+      console.log("[checkout_POST]", err);
+    }
   };
 
   return (
@@ -110,18 +115,25 @@ const Cart = () => {
       </div>
 
       <div className="w-1/3 max-lg:w-full flex flex-col gap-8 bg-grey-1 rounded-lg px-4 py-5">
-        <p className="text-heading4-bold pb-4">
-          Summary{" "}
-          <span>{`(${cart?.cartItems?.length} ${
-            cart.cartItems.length > 1 ? "items" : "item"
-          })`}</span>
-        </p>
+        <div className="pb-4">
+          <p className="text-heading4-bold">
+            Summary{" "}
+            <span>{`(${cart?.cartItems?.length} ${
+              cart.cartItems.length > 1 ? "items" : "item"
+            })`}</span>
+          </p>
+          <p>Email : {session?.user?.email}</p>
+          <p>Name : {session?.user?.name}</p>
+        </div>
         <div className="flex justify-between text-body-semibold">
           <span>Total Amount</span>
           <span>$ {totalRounded}</span>
         </div>
         <button
-          className="border rounded-lg text-body-bold bg-white py-3 w-full hover:bg-black hover:text-white"
+          disabled={!cart?.cartItems?.length}
+          className={`${
+            cart?.cartItems?.length === 0 && " cursor-not-allowed "
+          }border rounded-lg text-body-bold bg-white py-3 w-full hover:bg-black hover:text-white`}
           onClick={handleCheckout}
         >
           Proceed to Checkout

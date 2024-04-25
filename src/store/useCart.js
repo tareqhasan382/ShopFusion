@@ -1,6 +1,5 @@
 import { toast } from "react-toastify";
 import { create } from "zustand";
-// import { toast } from "react-hot-toast";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 const useCart = create(
@@ -9,7 +8,7 @@ const useCart = create(
       cartItems: [],
       addItem: (data) => {
         const { item, quantity, color, size } = data;
-        const currentItems = get().cartItems; // all the items already in cart
+        const currentItems = get().cartItems;
         const isExisting = currentItems.find(
           (cartItem) => cartItem.item._id === item._id
         );
@@ -46,7 +45,17 @@ const useCart = create(
         set({ cartItems: newCartItems });
         toast.success("Item quantity decreased");
       },
-      clearCart: () => set({ cartItems: [] }),
+      // clearCart: () => set({ cartItems: [] }),
+      clearCart: () => {
+        const currentItems = get().cartItems;
+
+        if (currentItems.length === 0) {
+          return;
+        }
+
+        set({ cartItems: [] });
+        toast.success("Cart cleared");
+      },
     }),
     {
       name: "cart-storage",

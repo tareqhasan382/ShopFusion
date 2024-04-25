@@ -25,7 +25,7 @@ const ProductCard = ({ product }) => {
       </div>
       <div className="flex justify-between items-center">
         <p className="text-body-bold">
-          ${parseFloat(product?.price?.["$numberDecimal"] ?? 0).toFixed(2)}{" "}
+          ${parseFloat(product?.price?.["$numberDecimal"] ?? 0).toFixed(2)}
         </p>
         <HeartFavorite product={product} />
       </div>
