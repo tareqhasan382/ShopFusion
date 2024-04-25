@@ -6,10 +6,12 @@ import { AiOutlineClose } from "react-icons/ai";
 import { ShoppingCart, Heart } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import useCart from "@/store/useCart";
 const Navbar = () => {
   const { data: session } = useSession();
   const [showProfile, setShowProfile] = useState(false);
   const [showNav, setShowNav] = useState(false);
+  const cart = useCart();
 
   return (
     <div className="max-w-[1280px] mx-auto overflow-x-hidden">
@@ -78,7 +80,9 @@ const Navbar = () => {
           </div>
           <Link href="/cart">
             <div className=" flex flex-col top-2 cursor-pointer  ">
-              <div className=" absolute top-3 px-2  w-6 ">10</div>
+              <div className=" absolute top-3 px-2  w-6 ">
+                {cart?.cartItems?.length}
+              </div>
               <div>
                 <ShoppingCart />
               </div>
