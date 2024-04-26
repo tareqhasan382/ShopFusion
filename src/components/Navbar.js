@@ -76,7 +76,9 @@ const Navbar = () => {
 
         <div className=" flex items-center space-x-2">
           <div className=" cursor-pointer  ">
-            <Heart color="#f40b0b" />
+            <Link href={session?.user ? "/wishlist" : "/sign-in"}>
+              <Heart color="#f40b0b" />
+            </Link>
           </div>
           <Link href="/cart">
             <div className=" flex flex-col top-2 cursor-pointer  ">

@@ -21,7 +21,7 @@ export async function GET(req, { params }) {
     //   );
     // }
     const result = await ProductModel.findById(productId);
-    //console.log("result:", result);
+
     return NextResponse.json(
       {
         message: "Product fetch successfully.",
