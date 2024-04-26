@@ -6,7 +6,6 @@ import { FilePenLine } from "lucide-react";
 import { toast } from "react-toastify";
 import Link from "next/link";
 import Pagination from "../Pagination";
-import Loader from "@/components/Loader";
 
 
 const Products = ({ page }) => {

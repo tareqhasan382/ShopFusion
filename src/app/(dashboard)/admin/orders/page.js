@@ -1,14 +1,18 @@
+"use client";
 import { BASEURL } from "@/app/(home)/page";
 import Pagination from "@/components/Dashboard/Pagination";
 import FormateDate from "@/components/FormateDate";
 import Link from "next/link";
-import React from "react";
-const getOrders = async () => {
+import React, { useEffect, useState } from "react";
+const getOrders = async ({ page, limit }) => {
   try {
-    const result = await fetch(`${BASEURL}/api/order`, {
-      method: "GET",
-      cache: "no-store",
-    });
+    const result = await fetch(
+      `${BASEURL}/api/order?page=${page}&limit=${limit || ""}`,
+      {
+        method: "GET",
+        cache: "no-store",
+      }
+    );
     if (!result.ok) {
       throw new Error("Failed to update data");
     }
@@ -19,10 +23,21 @@ const getOrders = async () => {
     console.log(error);
   }
 };
-const Orders = async () => {
-  const res = await getOrders();
-  //console.log("orders:", res);
-
+const Orders = ({ searchParams }) => {
+  const [res, setRes] = useState([]);
+  const page = parseInt(searchParams?.page) || 1;
+  const limit = 10;
+  const per_page_data = 10;
+  const hasPrev = per_page_data * (page - 1) > 0;
+  const hasNext = per_page_data * (page - 1) + per_page_data < res?.total;
+  const orderData = async ({ page, limit }) => {
+    const data = await getOrders({ page, limit });
+    setRes(data);
+  };
+  useEffect(() => {
+    orderData({ page, limit });
+  }, [page, limit]);
+  // console.log("orders:", res);
   return (
     <div>
       <div className=" flex flex-col gap-5 py-5 ">
@@ -39,8 +54,8 @@ const Orders = async () => {
                 </tr>
               </thead>
               <tbody>
-                {res?.length > 0 ? (
-                  res?.map((item, index) => (
+                {res?.paginatedOrderDetails?.length > 0 ? (
+                  res?.paginatedOrderDetails?.map((item, index) => (
                     <tr key={item._id} className=" hover:bg-gray-300 ">
                       <td className="border px-4 py-2" data-label="Name">
                         <Link href={`/admin/orders/${item._id}`}>
@@ -84,7 +99,7 @@ const Orders = async () => {
           </div>
         </div>
       </div>
-      {/* <Pagination page={page} hasNext={hasNext} hasPrev={hasPrev} /> */}
+      <Pagination page={page} hasNext={hasNext} hasPrev={hasPrev} />
     </div>
   );
 };
