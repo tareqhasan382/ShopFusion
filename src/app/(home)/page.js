@@ -1,9 +1,10 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
-import Image from "next/image";
 import Collections from "@/components/UI/Collections";
 import ProductList from "@/components/UI/ProductList";
 
+import Hero from "@/components/UI/Hero";
+import Testimonials from "@/components/UI/Testimonials";
 export const BASEURL = "http://localhost:3000";
 const getCollection = async () => {
   try {
@@ -45,16 +46,11 @@ export default async function Home() {
   ]);
 
   return (
-    <>
-      <Image
-        src="/banner.png"
-        alt="banner"
-        width={2000}
-        height={1000}
-        className="w-screen"
-      />
+    <div>
+      <Hero />
       <Collections collections={collections} />
       <ProductList products={products} />
-    </>
+      <Testimonials />
+    </div>
   );
 }

@@ -24,7 +24,7 @@ export default function RootLayout({ children }) {
             </div>
             <div className=" ">{children}</div>
           </main>
-          <div className=" bg-slate-200 text-black ">
+          <div className=" bg-gray-800 text-white ">
             <Footer />
           </div>
         </AuthProvider>
