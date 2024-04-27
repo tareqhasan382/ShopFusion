@@ -42,6 +42,7 @@ This project aims to create a mobaile responsive E-commerce website with feature
 - react-toastify
 - Mongoose
 - Zustand
+- Stripe
 
 ## Explore Project with Dashboard
 
