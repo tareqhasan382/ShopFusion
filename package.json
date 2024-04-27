@@ -25,6 +25,7 @@
     "react-icons": "^5.1.0",
     "react-multi-select-component": "^4.3.4",
     "react-toastify": "^10.0.5",
+    "recharts": "^2.12.6",
     "stripe": "^15.3.0",
     "swr": "^2.2.5",
     "tailwind-scrollbar-hide": "^1.1.7",
