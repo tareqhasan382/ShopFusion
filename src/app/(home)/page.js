@@ -5,7 +5,7 @@ import ProductList from "@/components/UI/ProductList";
 
 import Hero from "@/components/UI/Hero";
 import Testimonials from "@/components/UI/Testimonials";
-export const BASEURL = "http://localhost:3000";
+export const BASEURL = "https://shop-fusion-sage.vercel.app";
 const getCollection = async () => {
   try {
     const result = await fetch(`${BASEURL}/api/collection`, {
