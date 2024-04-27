@@ -24,6 +24,9 @@ const EditProduct = ({ productId }) => {
   const router = useRouter();
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState(0);
   const [selected, setSelected] = useState([]);
   const [selectedColor, setSelectedColor] = useState([]);
   const [product, setProduct] = useState({ collections: [], colors: [] });
@@ -60,6 +63,9 @@ const EditProduct = ({ productId }) => {
       }
       const data = await result.json();
       setProduct(data?.data);
+      setDescription(data?.data?.description)
+      setTitle(data?.data?.title)
+      setPrice(parseFloat(data?.data?.price["$numberDecimal"] ?? 0).toFixed(2))
       setSelected(data?.data.collections.map((collection) => ({ label: collection.title, value:collection})));
       setSelectedColor(data?.data.colors.map((color) => ({ label: color, value: color })));
     } catch (error) {
@@ -79,11 +85,14 @@ const EditProduct = ({ productId }) => {
     const data = {
       collections: collectionIds,
       colors: selectedColorValues,
+      title:title,
+      description:description,
+      price:price
     };
 
     try {
       const response = await fetch(`${BASEURL}/api/product/${productId}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
@@ -102,11 +111,39 @@ const EditProduct = ({ productId }) => {
       toast.error("Product Update Failed");
     }
   };
-
+// console.log("product:",product)
   return (
     <div className="mb-20">
       <form onSubmit={handleSubmit} className="flex flex-col">
+      <input
+          className=" my-3 lg:w-[1250px]  w-full p-2 lg:text-4xl text-lg border-gray-300 border-[1px] rounded-md  focus:border-gray-600 text-black"
+          type="text"
+          id="title"
+          name="title"
+          value={title}
+          placeholder="Product title"
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <textarea
+          className="lg:w-[1250px] w-full h-[100px] p-2 lg:text-4xl text-lg border-gray-300 border-[1px] rounded-md focus:border-gray-600 text-black resize-none"
+          id="description"
+          name="description"
+          value={description}
+          placeholder="Products description"
+          onChange={(e) => setDescription(e.target.value)}
+        ></textarea>
         <div className="lg:grid lg:grid-cols-3 md:grid md:grid-cols-1 w-full gap-5 py-5">
+        <div className="flex flex-col py-2">
+            <label htmlFor="price">Price($)</label>
+            <input
+              className="p-2  border-gray-300 border-[1px] rounded-md focus:border-gray-600 text-black "
+              id="price"
+              type="number"
+              name="price"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+            />
+          </div>
           <div className="flex flex-col py-2">
             <label htmlFor="collection">Collections</label>
             <MultiSelect
