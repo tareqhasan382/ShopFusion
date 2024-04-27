@@ -114,33 +114,31 @@ const Cart = () => {
         )}
       </div>
 
-      {cart?.cartItem?.length && (
-        <div className="w-1/3 max-lg:w-full flex flex-col gap-8 bg-grey-1 rounded-lg px-4 py-5">
-          <div className="pb-4">
-            <p className="text-heading4-bold">
-              Summary{" "}
-              <span>{`(${cart?.cartItems?.length} ${
-                cart.cartItems.length > 1 ? "items" : "item"
-              })`}</span>
-            </p>
-            <p>Email : {session?.user?.email}</p>
-            <p>Name : {session?.user?.name}</p>
-          </div>
-          <div className="flex justify-between text-body-semibold">
-            <span>Total Amount</span>
-            <span>$ {totalRounded}</span>
-          </div>
-          <button
-            disabled={!cart?.cartItems?.length}
-            className={`${
-              cart?.cartItems?.length === 0 && " cursor-not-allowed "
-            }border rounded-lg text-body-bold bg-white py-3 w-full hover:bg-black hover:text-white`}
-            onClick={handleCheckout}
-          >
-            Proceed to Checkout
-          </button>
+      <div className="w-1/3 max-lg:w-full flex flex-col gap-8 bg-grey-1 rounded-lg px-4 py-5">
+        <div className="pb-4">
+          <p className="text-heading4-bold">
+            Summary{" "}
+            <span>{`(${cart?.cartItems?.length} ${
+              cart.cartItems.length > 1 ? "items" : "item"
+            })`}</span>
+          </p>
+          <p>Email : {session?.user?.email}</p>
+          <p>Name : {session?.user?.name}</p>
         </div>
-      )}
+        <div className="flex justify-between text-body-semibold">
+          <span>Total Amount</span>
+          <span>$ {totalRounded}</span>
+        </div>
+        <button
+          disabled={!cart?.cartItems?.length}
+          className={`${
+            cart?.cartItems?.length === 0 && " cursor-not-allowed "
+          }border rounded-lg text-body-bold bg-white py-3 w-full hover:bg-black hover:text-white`}
+          onClick={handleCheckout}
+        >
+          Proceed to Checkout
+        </button>
+      </div>
     </div>
   );
 };
