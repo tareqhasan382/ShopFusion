@@ -11,6 +11,7 @@ This project aims to create a mobaile responsive E-commerce website with feature
 - **Sign-In Page**: Allows users to sign in to their account.
 - **Sign-Up Page**: Allows new users to create an account.
 - **Navbar**: Navigation bar for easy navigation across the website.
+- **Payment method Stripe**: Integrate payment method stripe.
 
 - **Home Page**:
 
