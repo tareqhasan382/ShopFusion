@@ -47,7 +47,7 @@ const getSalesPerMonth = async () => {
     console.log(error);
   }
 };
-export const dynamic = "force-dynamic";
+//next:{revalidate:60}
 const Dashboard = async () => {
   const totalRevenue = await getTotalSales();
   const totalOrders = await getTotalSales();
