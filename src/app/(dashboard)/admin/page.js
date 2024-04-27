@@ -6,7 +6,7 @@ const getTotalSales = async () => {
   try {
     const result = await fetch(`${BASEURL}/api/admin/orders`, {
       method: "GET",
-      cache: "no-store",
+      cache: "no-cache",
     });
     if (!result.ok) {
       throw new Error("Failed to fetch data");
@@ -21,7 +21,7 @@ const getTotalCustomers = async () => {
   try {
     const result = await fetch(`${BASEURL}/api/admin/customers`, {
       method: "GET",
-      cache: "no-store",
+      cache: "no-cache",
     });
     if (!result.ok) {
       throw new Error("Failed to fetch data");
@@ -36,7 +36,7 @@ const getSalesPerMonth = async () => {
   try {
     const result = await fetch(`${BASEURL}/api/admin/graphdata`, {
       method: "GET",
-      cache: "no-store",
+      cache: "no-cache",
     });
     if (!result.ok) {
       throw new Error("Failed to fetch data");
