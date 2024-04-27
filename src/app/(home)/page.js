@@ -10,7 +10,7 @@ const getCollection = async () => {
   try {
     const result = await fetch(`${BASEURL}/api/collection`, {
       method: "GET",
-      cache: "no-cache",
+      next: { revalidate: 3600 },
     });
     if (!result.ok) {
       throw new Error("Failed to fetch data");
@@ -25,7 +25,7 @@ const getProduct = async () => {
   try {
     const result = await fetch(`${BASEURL}/api/product`, {
       method: "GET",
-      cache: "no-cache",
+      next: { revalidate: 3600 },
     });
     if (!result.ok) {
       throw new Error("Failed to fetch data");
