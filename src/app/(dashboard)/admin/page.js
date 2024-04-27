@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import { CircleDollarSign, ShoppingBag, UserRound } from "lucide-react";
 import { BASEURL } from "@/app/(home)/page";
 import SalesChart from "@/components/Dashboard/SalesChart";
@@ -48,17 +49,30 @@ const getSalesPerMonth = async () => {
   }
 };
 //next:{revalidate:60}
-const Dashboard = async () => {
-  const totalRevenue = await getTotalSales();
-  const totalOrders = await getTotalSales();
-  const totalCustomers = await getTotalCustomers();
-  const graphData = await getSalesPerMonth();
-  const [revenue, orders, customers, data] = await Promise.all([
-    totalRevenue,
-    totalOrders,
-    totalCustomers,
-    graphData,
-  ]);
+const Dashboard = () => {
+  const [revenue, setRevenue] = useState();
+  const [orders, setOrders] = useState();
+  const [customers, setCustomers] = useState();
+  const [data, setData] = useState();
+  const getData = async () => {
+    const totalRevenue = await getTotalSales();
+    setRevenue(totalRevenue);
+    const totalOrders = await getTotalSales();
+    setOrders(totalOrders);
+    const totalCustomers = await getTotalCustomers();
+    setCustomers(totalCustomers);
+    const graphData = await getSalesPerMonth();
+    setData(graphData);
+  };
+  useEffect(() => {
+    getData();
+  }, []);
+  // const [revenue, orders, customers, data] = await Promise.all([
+  //   totalRevenue,
+  //   totalOrders,
+  //   totalCustomers,
+  //   graphData,
+  // ]);
 
   return (
     <div className=" py-10">
