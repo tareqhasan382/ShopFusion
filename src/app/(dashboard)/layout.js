@@ -6,12 +6,17 @@ import { AuthProvider } from "@/Providers";
 const inter = Inter({ subsets: ["latin"] });
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "../api/auth/[...nextauth]/route";
 export const metadata = {
   title: "Dashboard",
   description: "e-commerce-Dashboard-Page",
 };
 
-export default function AdminLayout({ children }) {
+export default async function AdminLayout({ children }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user || session?.user?.role !== "admin") redirect("/sign-in");
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body className={inter.className}>

@@ -1,16 +1,57 @@
 import React from "react";
 import { CircleDollarSign, ShoppingBag, UserRound } from "lucide-react";
-import {
-  getSalesPerMonth,
-  getTotalCustomers,
-  getTotalSales,
-} from "../../../../actions/actions";
+import { BASEURL } from "@/app/(home)/page";
 import SalesChart from "@/components/Dashboard/SalesChart";
-const Dashboard = async () => {
-  const totalRevenue = await getTotalSales().then((data) => data.totalRevenue);
-  const totalOrders = await getTotalSales().then((data) => data.totalOrders);
-  const totalCustomers = await getTotalCustomers();
+const getTotalSales = async () => {
+  try {
+    const result = await fetch(`${BASEURL}/api/admin/orders`, {
+      method: "GET",
+      cache: "no-store",
+    });
+    if (!result.ok) {
+      throw new Error("Failed to fetch data");
+    }
 
+    return result.json();
+  } catch (error) {
+    console.log(error);
+  }
+};
+const getTotalCustomers = async () => {
+  try {
+    const result = await fetch(`${BASEURL}/api/admin/customers`, {
+      method: "GET",
+      cache: "no-store",
+    });
+    if (!result.ok) {
+      throw new Error("Failed to fetch data");
+    }
+
+    return result.json();
+  } catch (error) {
+    console.log(error);
+  }
+};
+const getSalesPerMonth = async () => {
+  try {
+    const result = await fetch(`${BASEURL}/api/admin/graphdata`, {
+      method: "GET",
+      cache: "no-store",
+    });
+    if (!result.ok) {
+      throw new Error("Failed to fetch data");
+    }
+
+    return result.json();
+  } catch (error) {
+    console.log(error);
+  }
+};
+export const dynamic = "force-dynamic";
+const Dashboard = async () => {
+  const totalRevenue = await getTotalSales();
+  const totalOrders = await getTotalSales();
+  const totalCustomers = await getTotalCustomers();
   const graphData = await getSalesPerMonth();
   const [revenue, orders, customers, data] = await Promise.all([
     totalRevenue,
@@ -19,7 +60,6 @@ const Dashboard = async () => {
     graphData,
   ]);
 
-  // console.log("graphData:", data);
   return (
     <div className=" py-10">
       <p className="text-heading2-bold">Dashboard</p>
@@ -34,7 +74,7 @@ const Dashboard = async () => {
             <CircleDollarSign />
           </div>
           <div>
-            <p className="text-body-bold">$ {revenue}</p>
+            <p className="text-body-bold">$ {revenue?.totalRevenue}</p>
           </div>
         </div>
 
@@ -46,7 +86,7 @@ const Dashboard = async () => {
             <ShoppingBag />
           </div>
           <div>
-            <p className="text-body-bold">{orders}</p>
+            <p className="text-body-bold">{orders?.totalOrders}</p>
           </div>
         </div>
 
@@ -58,7 +98,7 @@ const Dashboard = async () => {
             <UserRound />
           </div>
           <div>
-            <p className="text-body-bold">{customers}</p>
+            <p className="text-body-bold">{customers?.totalCustomers}</p>
           </div>
         </div>
       </div>
@@ -70,7 +110,7 @@ const Dashboard = async () => {
           </h1>
         </div>
         <div>
-          <SalesChart data={data} />
+          <SalesChart data={data?.graphData} />
         </div>
       </div>
     </div>

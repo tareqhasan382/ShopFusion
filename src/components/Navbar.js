@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
 import { CiMenuBurger } from "react-icons/ci";
 import { AiOutlineClose } from "react-icons/ai";
@@ -12,7 +12,7 @@ const Navbar = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [showNav, setShowNav] = useState(false);
   const cart = useCart();
-
+  useEffect(() => {}, []);
   return (
     <div className="max-w-[1280px] mx-auto overflow-x-hidden">
       <div className=" px-5 flex items-center justify-between py-4 relative">
@@ -77,7 +77,7 @@ const Navbar = () => {
         <div className=" flex items-center space-x-2">
           <div className=" cursor-pointer  ">
             <Link href={session?.user ? "/wishlist" : "/sign-in"}>
-              <Heart color="#f40b0b" />
+              <Heart fill="red" color="#f40b0b" />
             </Link>
           </div>
           <Link href="/cart">

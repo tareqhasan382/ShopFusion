@@ -13,7 +13,7 @@ const Collections = async({collections}) => {
       ) : (
         <div className="flex flex-wrap items-center justify-center gap-8">
           {collections?.data.map((collection) => (
-            <Link href={`/collections/${collection._id}`} key={collection._id}>
+            <div key={collection._id}>
               <Image
                 key={collection._id}
                 src={collection?.image}
@@ -23,7 +23,7 @@ const Collections = async({collections}) => {
                 priority
                 className="rounded-lg cursor-pointer"
               />
-            </Link>
+            </div>
           ))}
         </div>
       )}
@@ -32,3 +32,4 @@ const Collections = async({collections}) => {
 }
 
 export default Collections;
+// href={`/collections/${collection._id}`}

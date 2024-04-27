@@ -70,7 +70,7 @@ export const POST = async (req, res) => {
 export async function GET(req, res) {
   const { searchParams } = new URL(req.url);
   const page = searchParams.get("page") || 1;
-  const limit = searchParams.get("limit") || 3;
+  const limit = searchParams.get("limit") || 30;
   const title = searchParams.get("title");
   const query = {};
   if (title) {

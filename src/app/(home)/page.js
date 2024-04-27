@@ -5,7 +5,7 @@ import ProductList from "@/components/UI/ProductList";
 
 import Hero from "@/components/UI/Hero";
 import Testimonials from "@/components/UI/Testimonials";
-export const BASEURL = "https://shop-fusion-sage.vercel.app";
+export const BASEURL = "https://shop-fusion-sage.vercel.app"; // http://localhost:3000 || https://shop-fusion-sage.vercel.app
 const getCollection = async () => {
   try {
     const result = await fetch(`${BASEURL}/api/collection`, {
@@ -36,6 +36,7 @@ const getProduct = async () => {
     console.log(error);
   }
 };
+export const dynamic = "force-dynamic";
 export default async function Home() {
   const session = await getServerSession(authOptions);
   const collectionsData = await getCollection();

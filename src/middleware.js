@@ -1,4 +1,5 @@
 export { default } from "next-auth/middleware";
 
-export const config = { matcher: [] };
-// "/admin", "/admin/collection"
+export const config = {
+  matcher: ["/cart", "/wishlist"],
+};

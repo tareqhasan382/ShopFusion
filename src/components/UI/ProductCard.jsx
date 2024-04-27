@@ -3,6 +3,7 @@ import Link from "next/link";
 import HeartFavorite from "./HeartFavorite";
 
 const ProductCard = ({ product }) => {
+  
   // console.log("product:",product) <Link href={`/admin/products/${item._id}`}>
   return (
     <div className=" w-[235px] bg-slate-200 hover:bg-slate-300 p-2 rounded gap-4">

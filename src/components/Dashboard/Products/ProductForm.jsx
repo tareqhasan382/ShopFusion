@@ -6,11 +6,8 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { MultiSelect } from "react-multi-select-component";
 import { toast } from "react-toastify";
-const tagOptions = [
-  { label: "Grapes 🍇", value: "grapes" },
-  { label: "Mango 🥭", value: "mango" },
-  { label: "Strawberry 🍓", value: "strawberry" },
-];
+import SelectTags from "./SelectTags";
+
 const colorOptions = [
   { label: "White", value: "white" },
   { label: "Blue", value: "blue" },
@@ -72,9 +69,8 @@ const ProductForm = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if(!photos.length)return toast.warning("please select photos!")
+   if(!photos.length)return toast.warning("please select photos!")
     const collectionIds = selected.map((item) => item.value);
-    const selectedTagValues = selectedTags.map((tag) => tag.value);
     const selectedSizeValues = selectedSize.map((tag) => tag.value);
     const selectedColorValues = selectedColor.map((tag) => tag.value);
     const data = {
@@ -82,14 +78,15 @@ const ProductForm = () => {
       description:description,
       category:category,
       collections: collectionIds,
-      tags: selectedTagValues,
+      tags: selectedTags,
       sizes: selectedSizeValues,
       colors: selectedColorValues,
       price:price,
       cost:cost,
       media:photos
     };
-const response = await fetch(`${BASEURL}/api/product`, {
+    console.log("data:",data)
+  const response = await fetch(`${BASEURL}/api/product`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -173,17 +170,7 @@ const response = await fetch(`${BASEURL}/api/product`, {
               disableSearch={false}
             />
           </div>
-          <div className="flex flex-col py-2">
-            <label htmlFor="tags">Tags</label>
-            <MultiSelect
-              options={tagOptions}
-              value={selectedTags}
-              onChange={setSelectedTags}
-              labelledBy="Select"
-              hasSelectAll={false}
-              disableSearch={false}
-            />
-          </div>
+          
           <div className="flex flex-col py-2">
             <label htmlFor="sizes">Sizes</label>
             <MultiSelect
@@ -205,6 +192,10 @@ const response = await fetch(`${BASEURL}/api/product`, {
               hasSelectAll={false}
               disableSearch={false}
             />
+          </div>
+          <div className="flex flex-col py-2">
+          <label htmlFor="tags">Tags</label>
+           <SelectTags selectedTags={selectedTags} setSelectedTags={setSelectedTags} />
           </div>
         </div>
         <div className="flex items-center gap-8 py-4">
