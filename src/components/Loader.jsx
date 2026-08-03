@@ -1,9 +1,9 @@
 const Loader = () => {
-    return (
-      <div className="flex items-center justify-center h-full ">
-        <div className="animate-spin rounded-full border-t-4 border-blue-500 border-solid h-12 w-12"></div>
-      </div>
-    );
-  }
-  
-  export default Loader;
+  return (
+    <div className="flex items-center justify-center p-12" role="status" aria-label="Loading">
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-100 border-t-indigo-600"></div>
+    </div>
+  );
+};
+
+export default Loader;

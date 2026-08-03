@@ -1,16 +1,23 @@
 import OrderModel from "../../../../../lib/models/OrderModel";
 import { connectMongodb } from "../../../../../lib/mongodb";
-import { NextResponse } from "next/server";
+import { getSessionFromRequest } from "../../../../../lib/auth";
+import { jsonError, jsonSuccess } from "../../../../../lib/apiResponse";
+import { getPaymentStatus } from "../../../../../lib/orderStatus";
+
 export const GET = async (req) => {
+  const session = await getSessionFromRequest(req);
+  if (!session || session.role !== "admin") {
+    return jsonError("Unauthorized.", 401);
+  }
+
   try {
     await connectMongodb();
     const orders = await OrderModel.find();
 
     const salesPerMonth = orders.reduce((acc, order) => {
+      if (getPaymentStatus(order) !== "paid") return acc;
       const monthIndex = new Date(order.createdAt).getMonth();
-      acc[monthIndex] = (acc[monthIndex] || 0) + order.totalAmount;
-      // For June
-      // acc[5] = (acc[5] || 0) + order.totalAmount (orders have monthIndex 5)
+      acc[monthIndex] = (acc[monthIndex] || 0) + (order.totalAmount || 0);
       return acc;
     }, {});
 
@@ -18,13 +25,12 @@ export const GET = async (req) => {
       const month = new Intl.DateTimeFormat("en-US", { month: "short" }).format(
         new Date(0, i)
       );
-      // if i === 5 => month = "Jun"
       return { name: month, sales: salesPerMonth[i] || 0 };
     });
 
-    return NextResponse.json({ graphData }, { status: 200 });
+    return jsonSuccess({ graphData });
   } catch (err) {
-    console.log("[orders_GET]", err);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    console.error("[graphdata_GET]", err);
+    return jsonError("Failed to load chart data.");
   }
 };

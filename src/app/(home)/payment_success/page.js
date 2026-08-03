@@ -1,28 +1,29 @@
-"use client";
+import { confirmPaidOrder } from "@lib/orders";
+import PaymentSuccessClient from "@/components/PaymentSuccessClient";
 
-import useCart from "@/store/useCart";
-import Link from "next/link";
-import { useEffect } from "react";
+export const dynamic = "force-dynamic";
 
-const SuccessfulPayment = () => {
-  const cart = useCart();
+const PaymentSuccess = async ({ searchParams }) => {
+  let orderId = null;
+  let confirmError = null;
 
-  useEffect(() => {
-    cart.clearCart();
-  }, [cart]);
+  const sessionId = searchParams?.session_id;
+  if (sessionId) {
+    try {
+      const { order, paid } = await confirmPaidOrder({ id: sessionId });
+      if (paid) {
+        orderId = order?._id?.toString() || null;
+      } else {
+        confirmError = "Payment has not been completed yet.";
+      }
+    } catch (error) {
+      console.error("[payment_success]", error);
+      confirmError =
+        "We could not confirm your order right now. It may still be created shortly.";
+    }
+  }
 
-  return (
-    <div className="h-screen flex flex-col justify-center items-center gap-5">
-      <p className="text-heading4-bold text-red-1">Successful Payment</p>
-      <p>Thank you for your purchase</p>
-      <Link
-        href="/"
-        className="p-4 border text-base-bold hover:bg-black hover:text-white"
-      >
-        CONTINUE TO SHOPPING
-      </Link>
-    </div>
-  );
+  return <PaymentSuccessClient orderId={orderId} confirmError={confirmError} />;
 };
 
-export default SuccessfulPayment;
+export default PaymentSuccess;

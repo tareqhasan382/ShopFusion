@@ -6,20 +6,22 @@ const useCart = create(
   persist(
     (set, get) => ({
       cartItems: [],
+
       addItem: (data) => {
         const { item, quantity, color, size } = data;
         const currentItems = get().cartItems;
-        const isExisting = currentItems.find(
+        const isExisting = currentItems.some(
           (cartItem) => cartItem.item._id === item._id
         );
 
         if (isExisting) {
-          return toast.warning("Item already in cart");
+          return toast.warning("Item is already in your cart.");
         }
 
         set({ cartItems: [...currentItems, { item, quantity, color, size }] });
-        toast.success("Item added to cart", { icon: "🛒" });
+        toast.success("Item added to cart");
       },
+
       removeItem: (idToRemove) => {
         const newCartItems = get().cartItems.filter(
           (cartItem) => cartItem.item._id !== idToRemove
@@ -27,6 +29,7 @@ const useCart = create(
         set({ cartItems: newCartItems });
         toast.success("Item removed from cart");
       },
+
       increaseQuantity: (idToIncrease) => {
         const newCartItems = get().cartItems.map((cartItem) =>
           cartItem.item._id === idToIncrease
@@ -34,25 +37,19 @@ const useCart = create(
             : cartItem
         );
         set({ cartItems: newCartItems });
-        toast.success("Item quantity increased");
       },
+
       decreaseQuantity: (idToDecrease) => {
         const newCartItems = get().cartItems.map((cartItem) =>
-          cartItem.item._id === idToDecrease
+          cartItem.item._id === idToDecrease && cartItem.quantity > 1
             ? { ...cartItem, quantity: cartItem.quantity - 1 }
             : cartItem
         );
         set({ cartItems: newCartItems });
-        toast.success("Item quantity decreased");
       },
-      // clearCart: () => set({ cartItems: [] }),
+
       clearCart: () => {
-        const currentItems = get().cartItems;
-
-        if (currentItems.length === 0) {
-          return;
-        }
-
+        if (get().cartItems.length === 0) return;
         set({ cartItems: [] });
         toast.success("Cart cleared");
       },

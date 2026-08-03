@@ -1,16 +1,16 @@
-import React from 'react';
+const FormateDate = ({ date }) => {
+  const createdAt = new Date(date);
+  if (isNaN(createdAt.getTime())) return <span>—</span>;
 
-const FormateDate = ({date}) => {
-   // console.log("date:",date)
-    const createdAt = new Date(date);
-const day = createdAt.getDate();
-const month = createdAt.toLocaleString('default', { month: 'long' });
-const year = createdAt.getFullYear();
   return (
-    <div>
-      <p>{`${day} ${month} ${year}`}</p>
-    </div>
+    <span className="whitespace-nowrap">
+      {createdAt.toLocaleDateString("en-US", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })}
+    </span>
   );
-}
+};
 
 export default FormateDate;

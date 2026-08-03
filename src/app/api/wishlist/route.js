@@ -1,69 +1,74 @@
-import { NextResponse } from "next/server";
-import UserModel from "../../../../lib/models/UserModel";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { getSessionFromRequest } from "../../../../lib/auth";
 import { connectMongodb } from "../../../../lib/mongodb";
+import UserModel from "../../../../lib/models/UserModel";
+import ProductModel from "../../../../lib/models/ProductModel";
+import { jsonError, jsonSuccess } from "../../../../lib/apiResponse";
+import { isObjectId } from "../../../../lib/validation";
+import { AUTH_RATE_LIMITS, clientIp } from "../../../../lib/rateLimit";
 
 export const POST = async (req) => {
+  const session = await getSessionFromRequest(req);
+  if (!session) return jsonError("Unauthorized.", 401);
+
+  const ip = clientIp(req);
+  const quota = AUTH_RATE_LIMITS.wishlist(ip);
+  if (!quota.ok) return jsonError("Too many requests. Please try again later.", 429);
+
+  let body;
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 403 });
-    }
+    body = await req.json();
+  } catch {
+    return jsonError("Invalid request body.", 400);
+  }
+
+  const { productId } = body || {};
+  if (!isObjectId(productId)) {
+    return jsonError("A valid product id is required.", 400);
+  }
+
+  try {
     await connectMongodb();
+    const user = await UserModel.findById(session.id);
+    if (!user) return jsonError("User not found.", 404);
 
-    const user = await UserModel.findById(session?.user?._id);
-
-    if (!user) {
-      return new NextResponse("User not found", { status: 404 });
-    }
-    const { productId } = await req.json();
-
-    if (!productId) {
-      return new NextResponse("Product Id required", { status: 400 });
-    }
     const index = user.wishlist.indexOf(productId);
-
     if (index !== -1) {
-      // Product already in the wishlist, remove it (Dislike)
       user.wishlist.splice(index, 1);
     } else {
-      // Product not in the wishlist, add it (Like)
       user.wishlist.push(productId);
     }
 
     await user.save();
 
-    return NextResponse.json(user, { status: 200 });
+    return jsonSuccess(
+      { wishlist: user.wishlist.map((id) => id.toString()) },
+      index !== -1 ? "Removed from wishlist." : "Added to wishlist."
+    );
   } catch (err) {
-    console.log("[wishlist_POST]", err);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    console.error("[wishlist_POST]", err);
+    return jsonError("Failed to update wishlist.");
   }
 };
 
 export const GET = async (req) => {
+  const session = await getSessionFromRequest(req);
+  if (!session) return jsonError("Unauthorized.", 401);
+
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user) {
-      return new NextResponse(JSON.stringify({ message: "Unauthorized" }), {
-        status: 401,
-      });
-    }
-
     await connectMongodb();
+    const user = await UserModel.findById(session.id);
+    if (!user) return jsonError("User not found.", 404);
 
-    const user = await UserModel.findById(session?.user._id);
+    const products = await ProductModel.find({
+      _id: { $in: user.wishlist },
+    });
 
-    // When the user sign-in for the 1st, immediately we will create a new user for them
-    // if (!user) {
-    //   user = await UserModel.create({ clerkId: userId })
-    //   await user.save()
-    // }
-
-    return NextResponse.json(user, { status: 200 });
+    return jsonSuccess({
+      wishlist: user.wishlist.map((id) => id.toString()),
+      products,
+    });
   } catch (err) {
-    console.log("[users_GET]", err);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    console.error("[wishlist_GET]", err);
+    return jsonError("Failed to load wishlist.");
   }
 };

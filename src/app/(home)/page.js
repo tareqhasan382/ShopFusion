@@ -1,55 +1,58 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+import { BASEURL } from "@lib/config";
 import Collections from "@/components/UI/Collections";
 import ProductList from "@/components/UI/ProductList";
-
 import Hero from "@/components/UI/Hero";
 import Testimonials from "@/components/UI/Testimonials";
-export const BASEURL = "https://shop-fusion-sage.vercel.app"; // http://localhost:3000 || https://shop-fusion-sage.vercel.app
-const getCollection = async () => {
-  try {
-    const result = await fetch(`${BASEURL}/api/collection`, {
-      method: "GET",
-      next: { revalidate: 3600 },
-    });
-    if (!result.ok) {
-      throw new Error("Failed to fetch data");
-    }
+import RecentlyViewed from "@/components/RecentlyViewed";
+import PromoStrip from "@/components/UI/PromoStrip";
+import ValueProps from "@/components/UI/ValueProps";
+import PromoBanner from "@/components/UI/PromoBanner";
 
+export const dynamic = "force-dynamic";
+
+const getCollections = async () => {
+  try {
+    const result = await fetch(`${BASEURL}/api/collection?limit=100&sort=popular`, {
+      method: "GET",
+      cache: "no-store",
+    });
+    if (!result.ok) throw new Error("Failed to fetch collections");
     return result.json();
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    return null;
   }
 };
-const getProduct = async () => {
-  try {
-    const result = await fetch(`${BASEURL}/api/product`, {
-      method: "GET",
-      next: { revalidate: 3600 },
-    });
-    if (!result.ok) {
-      throw new Error("Failed to fetch data");
-    }
 
+const getProducts = async () => {
+  try {
+    const result = await fetch(`${BASEURL}/api/product?limit=8`, {
+      method: "GET",
+      cache: "no-store",
+    });
+    if (!result.ok) throw new Error("Failed to fetch products");
     return result.json();
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    return null;
   }
 };
+
 export default async function Home() {
-  const session = await getServerSession(authOptions);
-  const collectionsData = await getCollection();
-  const productsData = await getProduct();
-  const [collections, products] = await Promise.all([
-    collectionsData,
-    productsData,
+  const [collectionsData, productsData] = await Promise.all([
+    getCollections(),
+    getProducts(),
   ]);
 
   return (
     <div>
+      <PromoStrip />
       <Hero />
-      <Collections collections={collections} />
-      <ProductList products={products} />
+      <Collections collections={collectionsData} />
+      <ValueProps />
+      <ProductList products={productsData} />
+      <PromoBanner />
+      <RecentlyViewed />
       <Testimonials />
     </div>
   );

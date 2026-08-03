@@ -2,21 +2,21 @@ import Link from "next/link";
 import React from "react";
 import { Plus } from "lucide-react";
 import Collection from "@/components/Dashboard/Collection";
+
 const page = ({ searchParams }) => {
   const page = parseInt(searchParams?.page) || 1;
+  const search = searchParams?.search || "";
+  const limit = parseInt(searchParams?.limit) || 10;
   return (
-    <div className=" min-w-full  flex-1 py-4 ">
-      <div className=" flex items-center gap-5 justify-between ">
-        <h1 className=" text-heading2-bold "> Collections</h1>
-        <Link href="/admin/collections/new">
-          <button className=" bg-blue-600 text-white text-small-bold rounded-lg px-4 py-2 flex items-center ">
-            <Plus color="#FFFFFF" /> Create Collection
-          </button>
+    <div>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <h1 className="page-title">Collections</h1>
+        <Link href="/admin/collections/new" className="btn-primary">
+          <Plus className="h-4 w-4" />
+          Create Collection
         </Link>
       </div>
-      <div className="border-b border-gray-700 my-4"></div>
-      {/* <CollectionForm /> */}
-      <Collection page={page} />
+      <Collection page={page} search={search} limit={limit} />
     </div>
   );
 };

@@ -2,9 +2,8 @@ import EditProduct from "@/components/Dashboard/Products/EditProduct";
 
 const page = ({ params: { editId } }) => {
   return (
-    <div className=" py-4 ">
-      <h1 className=" text-heading2-bold ">Edit Product</h1>
-      <div className="border-b border-gray-700 my-4"></div>
+    <div>
+      <h1 className="page-title mb-6">Edit Product</h1>
       <EditProduct productId={editId} />
     </div>
   );

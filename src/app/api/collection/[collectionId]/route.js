@@ -1,125 +1,97 @@
-import { NextResponse } from "next/server";
+import { getSessionFromRequest } from "../../../../../lib/auth";
 import { connectMongodb } from "../../../../../lib/mongodb";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
 import CollectionModel from "../../../../../lib/models/CollectionModel";
+import ProductModel from "../../../../../lib/models/ProductModel";
+import { jsonError, jsonSuccess } from "../../../../../lib/apiResponse";
+import { isDescription, isObjectId, isTitle } from "../../../../../lib/validation";
 
 export async function GET(req, { params }) {
   const { collectionId } = params;
+  if (!isObjectId(collectionId)) return jsonError("Invalid collection id.", 400);
+
   try {
     await connectMongodb();
-    const session = await getServerSession(authOptions);
-    if (!session.user) {
-      return NextResponse.json(
-        {
-          message: "User UnAuthorized.",
-          success: "False",
-          data: null,
-        },
-        { status: 201 }
-      );
-    }
-    const result = await CollectionModel.findById(collectionId);
-    return NextResponse.json(
-      {
-        message: "Collection fetch successfully.",
-        success: "true",
-        data: result,
-      },
-      { status: 201 }
-    );
+    const result = await CollectionModel.findById(collectionId).populate("products");
+    if (!result) return jsonError("Collection not found.", 404);
+    return jsonSuccess({ data: result });
   } catch (error) {
-    return NextResponse.json(
-      { message: "Data fetch failed.", success: "false" },
-      { status: 500 }
-    );
+    console.error("[collection_GET]", error);
+    return jsonError("Failed to load collection.");
   }
 }
 
-export async function PATCH(req, { params, body }) {
+export async function PATCH(req, { params }) {
+  const session = await getSessionFromRequest(req);
+  if (!session || session.role !== "admin") {
+    return jsonError("Unauthorized.", 401);
+  }
+
   const { collectionId } = params;
-  const { title, description, image } = await req.json();
-  console.log("patch Data::", body);
+  if (!isObjectId(collectionId)) return jsonError("Invalid collection id.", 400);
+
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return jsonError("Invalid request body.", 400);
+  }
+
+  const { title, description, image } = body || {};
+
+  const errors = {};
+  if (title !== undefined && !isTitle(title)) errors.title = "Title must be between 2 and 200 characters.";
+  if (description !== undefined && !isDescription(description)) errors.description = "Description is too long.";
+
+  if (Object.keys(errors).length > 0) {
+    return jsonError("Validation failed.", 422, { errors });
+  }
 
   try {
     await connectMongodb();
-    const session = await getServerSession(authOptions);
-
-    if (!session.user) {
-      return NextResponse.json(
-        {
-          message: "User UnAuthorized.",
-          success: "false",
-          data: null,
-        },
-        { status: 401 }
-      );
-    }
-
-    // Find collection by ID and update it
     const result = await CollectionModel.findByIdAndUpdate(
       collectionId,
-      { title, description, image },
+      {
+        ...(title !== undefined && { title: title.trim() }),
+        ...(description !== undefined && { description: description?.trim() }),
+        ...(image !== undefined && { image }),
+      },
       { new: true }
     );
 
-    if (!result) {
-      return NextResponse.json(
-        {
-          message: "Collection not found.",
-          success: "false",
-          data: null,
-        },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      {
-        message: "Collection updated successfully.",
-        success: "true",
-        data: result,
-      },
-      { status: 200 }
-    );
+    if (!result) return jsonError("Collection not found.", 404);
+    return jsonSuccess({ data: result }, "Collection updated successfully.");
   } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { message: "Data update failed.", success: "false" },
-      { status: 500 }
-    );
+    console.error("[collection_PATCH]", error);
+    return jsonError("Failed to update collection.");
   }
 }
 
 export async function DELETE(req, { params }) {
+  const session = await getSessionFromRequest(req);
+  if (!session || session.role !== "admin") {
+    return jsonError("Unauthorized.", 401);
+  }
+
   const { collectionId } = params;
-  console.log("delete collectionId:", collectionId);
+  if (!isObjectId(collectionId)) return jsonError("Invalid collection id.", 400);
+
   try {
     await connectMongodb();
-    const session = await getServerSession(authOptions);
-    if (!session.user) {
-      return NextResponse.json(
-        {
-          message: "User UnAuthorized.",
-          success: "False",
-          data: null,
-        },
-        { status: 201 }
-      );
-    }
-    const result = await CollectionModel.findByIdAndDelete(collectionId);
-    return NextResponse.json(
-      {
-        message: "Collection deleted successfully.",
-        success: "true",
-        data: result,
-      },
-      { status: 201 }
+
+    const collection = await CollectionModel.findById(collectionId);
+    if (!collection) return jsonError("Collection not found.", 404);
+
+    await CollectionModel.findByIdAndDelete(collectionId);
+
+    // Remove the collection reference from its products.
+    await ProductModel.updateMany(
+      { collections: collectionId },
+      { $pull: { collections: collectionId } }
     );
+
+    return jsonSuccess({ data: collection }, "Collection deleted successfully.");
   } catch (error) {
-    return NextResponse.json(
-      { message: "Data delete failed.", success: "false" },
-      { status: 500 }
-    );
+    console.error("[collection_DELETE]", error);
+    return jsonError("Failed to delete collection.");
   }
 }

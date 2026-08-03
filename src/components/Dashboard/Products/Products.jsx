@@ -1,151 +1,156 @@
 "use client";
-import { BASEURL } from "@/app/(home)/page";
+import { BASEURL } from "@lib/config";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
-import { FilePenLine } from "lucide-react";
+import { Trash2, PencilLine, Loader2, Image as ImageIcon } from "lucide-react";
 import { toast } from "react-toastify";
 import Link from "next/link";
-import Pagination from "../Pagination";
+import Image from "next/image";
+import DataTable from "@/components/Dashboard/DataTable";
+import { formatPrice } from "@lib/format";
 
-
-const Products = ({ page }) => {
-  const [products, setProducts] = useState([]);
+const Products = ({ page, search = "", limit = 10 }) => {
+  const router = useRouter();
+  const [products, setProducts] = useState({ data: [], total: 0 });
   const [loading, setLoading] = useState(false);
-  const limit = 10;
-  const per_page_data = 10;
-  const hasPrev = per_page_data * (page - 1) > 0;
-  const hasNext =
-    per_page_data * (page - 1) + per_page_data < products?.total;
+  const [deleting, setDeleting] = useState(null);
+
+  const fetchProducts = async (currentPage, searchTerm) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: currentPage, limit });
+      if (searchTerm) params.set("search", searchTerm);
+      const result = await fetch(
+        `${BASEURL}/api/product?${params.toString()}`,
+        { method: "GET", cache: "no-store" }
+      );
+      if (!result.ok) throw new Error("Failed to fetch data");
+      const data = await result.json();
+      setProducts(data);
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to load products.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const getCollection = async () => {
-      setLoading(true);
-      try {
-        const result = await fetch(
-          `${BASEURL}/api/product?page=${page}&limit=${limit || ""}`,
-          {
-            method: "GET",
-            cache: "no-store",
-          }
-        );
-        if (!result.ok) {
-          throw new Error("Failed to fetch data");
-        }
-
-        const data = await result.json();
-        setLoading(false);
-        setProducts(data);
-      } catch (error) {
-        setLoading(false);
-        console.log(error);
-      }
-    };
-    getCollection();
-  }, [page]);
+    fetchProducts(page, search);
+  }, [page, search, limit]);
 
   const handleDelete = async (productId) => {
-  try {
-    setLoading(true);
-    const result = await fetch(`${BASEURL}/api/product/${productId}`, {
-      method: "DELETE",
-      cache: "no-store",
-    });
-
-    if (!result.ok) {
-      throw new Error("Failed to delete data");
-    }
-
-    setLoading(false);
-    
-    // Refetch the collection data after successful delete
-    const newResult = await fetch(
-      `${BASEURL}/api/product?page=${page}&limit=${limit || ""}`,
-      {
-        method: "GET",
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    setDeleting(productId);
+    try {
+      const result = await fetch(`${BASEURL}/api/product/${productId}`, {
+        method: "DELETE",
         cache: "no-store",
-      }
-    );
-
-    if (!newResult.ok) {
-      throw new Error("Failed to fetch updated data");
+      });
+      if (!result.ok) throw new Error("Failed to delete data");
+      toast.success("Product deleted.");
+      fetchProducts(page);
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to delete product.");
+    } finally {
+      setDeleting(null);
     }
+  };
 
-    const newData = await newResult.json();
-    setProducts(newData);
-    toast.success("Delete successful");
-  } catch (error) {
-    setLoading(false);
-    console.log(error);
-  }
-};
- //console.log("products:",products)
-  return (
-    <div>
-      <div className=" flex flex-col gap-5 py-5 ">
-        
-        <div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full table-auto border-collapse">
-              <thead className=" hover:bg-red-200 bg-red-300 ">
-                <tr>
-                  <th className="px-4 py-2  text-left">Title</th>
-                  <th className="px-4 py-2  text-left">Cost($)</th>
-                  <th className="px-4 py-2  text-left">Price($)</th>
-                  <th className="px-4 py-2 text-left">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-              {loading && <tr className="flex items-center justify-center h-full "><td className="animate-spin rounded-full border-t-4 border-blue-500 border-solid h-12 w-12"></td></tr>}
-                {products?.data?.length>0? products?.data?.map((item, index) => (
-                  <tr key={index} className=" hover:bg-gray-300 ">
-                    <td className="border px-4 py-2" data-label="Name">
-                      {item?.title}
-                    </td>
-                    <td className="border px-4 py-2" data-label="Name">
-                    
-                    {parseFloat(item?.cost?.["$numberDecimal"] ?? 0).toFixed(2)}
-                    </td>
-                    <td className="border px-4 py-2" data-label="Name">
-                    
-                    {parseFloat(item?.price?.["$numberDecimal"] ?? 0).toFixed(2)}
-                    </td>
-                    <td
-                      className="border px-4 py-2 flex flex-row gap-4 "
-                      data-label="Name"
-                    >
-                      <button
-                        disabled={loading}
-                        onClick={() => handleDelete(item?._id)}
-                        className=" cursor-pointer "
-                      >
-                       
-                        <Trash2 />
-                      </button>
-                      <Link href={`/admin/products/${item._id}`}>
-                      <button
-                        disabled={loading}
-                        className={` ${
-                          loading && " cursor-not-allowed"
-                        } cursor-pointer`}
-                      >
-                       
-                        <FilePenLine />
-                      </button>
-                      </Link>
-                      
-                    </td>
-                  </tr>
-                )) :  <tr>
-                <td colSpan="4" className="text-center py-2 text-body-bold ">No Data found in products!</td>
-              </tr>}
-              </tbody>
-            </table>
-          </div>
+  const columns = [
+    {
+      key: "title",
+      label: "Product",
+      render: (item) => (
+        <div className="flex items-center gap-3">
+          {item.media?.[0] ? (
+            <Image
+              src={item.media[0]}
+              alt={item.title}
+              width={48}
+              height={48}
+              className="h-12 w-12 rounded-lg border border-slate-200 object-cover"
+            />
+          ) : (
+            <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-slate-400">
+              <ImageIcon className="h-5 w-5" />
+            </span>
+          )}
+          <span className="font-medium text-slate-900">{item.title}</span>
         </div>
-       
-      </div>
-      <Pagination page={page} hasNext={hasNext} hasPrev={hasPrev} />
-    </div>
+      ),
+    },
+    {
+      key: "cost",
+      label: "Cost",
+      render: (item) => <span className="text-slate-600">{formatPrice(item.cost)}</span>,
+    },
+    {
+      key: "price",
+      label: "Price",
+      render: (item) => <span className="font-semibold text-slate-900">{formatPrice(item.price)}</span>,
+    },
+    {
+      key: "category",
+      label: "Category",
+      render: (item) => (
+        <span className="inline-block rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">
+          {item.category}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      align: "right",
+      render: (item) => (
+        <div className="flex items-center justify-end gap-2">
+          <Link
+            href={`/admin/products/${item._id}`}
+            className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-indigo-600"
+            aria-label="Edit product"
+          >
+            <PencilLine className="h-4 w-4" />
+          </Link>
+          <button
+            onClick={() => handleDelete(item._id)}
+            disabled={deleting === item._id}
+            className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50"
+            aria-label="Delete product"
+          >
+            {deleting === item._id ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4" />
+            )}
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <DataTable
+      columns={columns}
+      rows={products?.data || []}
+      loading={loading}
+      page={page}
+      total={products?.total || 0}
+      pageSize={limit}
+      searchValue={search}
+      onSearch={(q) => {
+        router.push(`?page=1&limit=${limit}${q ? `&search=${encodeURIComponent(q)}` : ""}`);
+      }}
+      onPageChange={(p) => {
+        router.push(`?page=${p}&limit=${limit}${search ? `&search=${encodeURIComponent(search)}` : ""}`);
+      }}
+      onPageSizeChange={(l) => {
+        router.push(`?page=1&limit=${l}${search ? `&search=${encodeURIComponent(search)}` : ""}`);
+      }}
+      searchPlaceholder="Search products…"
+      emptyMessage="No products found. Create your first product to get started."
+    />
   );
 };
 

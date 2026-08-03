@@ -1,15 +1,16 @@
-"use client"
-import React, { useState } from 'react'
+"use client";
+import React, { useState } from "react";
+import { X } from "lucide-react";
 
-const SelectTags = ({selectedTags, setSelectedTags}) => {
-    // const [selectedTags, setSelectedTags] = useState([]);
+const SelectTags = ({ selectedTags, setSelectedTags }) => {
   const [inputValue, setInputValue] = useState("");
 
   const addTag = (tag) => {
-    if (tag.trim() !== "") {
-      setSelectedTags([...selectedTags, tag.trim()]);
-      setInputValue("");
+    const trimmed = tag.trim();
+    if (trimmed !== "" && !selectedTags.includes(trimmed)) {
+      setSelectedTags([...selectedTags, trimmed]);
     }
+    setInputValue("");
   };
 
   const removeTag = (index) => {
@@ -17,43 +18,44 @@ const SelectTags = ({selectedTags, setSelectedTags}) => {
     newTags.splice(index, 1);
     setSelectedTags(newTags);
   };
+
   return (
     <div>
-      <div className="flex flex-col relative " >
-       
-       <input
-         type="text"
-         value={inputValue}
-         onChange={(e) => setInputValue(e.target.value)}
-         onKeyDown={(e) => {
-           if (e.key === "Enter") {
-             e.preventDefault();
-             addTag(inputValue);
-           }
-         }}
-         placeholder="Press Enter to add a tag"
-         className=" my-3  p-2 lg:text-4xl text-lg border-gray-300 border-[1px] rounded-md  focus:border-gray-600 text-black"
-       />
-     </div>
-
-     <div className="flex flex-wrap">
-       {selectedTags.map((tag, index) => (
-         <div
-           key={index}
-           className="bg-gray-200 px-2 py-1 mx-4 rounded-full mr-2 mt-2 cursor-pointer relative "
-         >
-           {tag}{" "}
-           <span
-             className=" font-semibold text-red-400 "
-             onClick={() => removeTag(index)}
-           >
-             x
-           </span>
-         </div>
-       ))}
-     </div>
+      <input
+        type="text"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            addTag(inputValue);
+          }
+        }}
+        placeholder="Type a tag and press Enter"
+        className="input-field"
+      />
+      {selectedTags.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {selectedTags.map((tag, index) => (
+            <span
+              key={index}
+              className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700"
+            >
+              {tag}
+              <button
+                type="button"
+                onClick={() => removeTag(index)}
+                className="text-indigo-400 transition-colors hover:text-rose-600"
+                aria-label={`Remove ${tag}`}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
-  )
-}
+  );
+};
 
-export default SelectTags
+export default SelectTags;

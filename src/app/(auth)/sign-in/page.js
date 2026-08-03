@@ -1,12 +1,15 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import SignInFrom from "@/components/SignInFrom";
-import { getServerSession } from "next-auth";
-import React from "react";
+import { getSession } from "@lib/auth";
+import SignInForm from "@/components/SignInForm";
 import { redirect } from "next/navigation";
-const page = async () => {
-  const session = await getServerSession(authOptions);
-  if (session?.user) redirect("/");
-  return <SignInFrom />;
+
+export const metadata = {
+  title: "Sign In",
 };
 
-export default page;
+const SignInPage = async ({ searchParams }) => {
+  const session = await getSession();
+  if (session) redirect("/");
+  return <SignInForm next={searchParams?.next} />;
+};
+
+export default SignInPage;

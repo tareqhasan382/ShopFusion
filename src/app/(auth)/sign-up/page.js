@@ -1,12 +1,15 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getSession } from "@lib/auth";
 import SignUpForm from "@/components/SignUpForm";
-import { getServerSession } from "next-auth";
-import React from "react";
 import { redirect } from "next/navigation";
-const page = async () => {
-  const session = await getServerSession(authOptions);
-  if (session?.user) redirect("/");
+
+export const metadata = {
+  title: "Create Account",
+};
+
+const SignUpPage = async () => {
+  const session = await getSession();
+  if (session) redirect("/");
   return <SignUpForm />;
 };
 
-export default page;
+export default SignUpPage;

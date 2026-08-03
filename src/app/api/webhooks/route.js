@@ -1,88 +1,64 @@
-import { NextResponse } from "next/server";
 import { stripe } from "../../../../lib/stripe";
-import { connectMongodb } from "../../../../lib/mongodb";
-import OrderModel from "../../../../lib/models/OrderModel";
-import CustomerModel from "../../../../lib/models/CustomerModel";
+import { confirmPaidOrder, cancelOrderBySessionId } from "../../../../lib/orders";
+import { jsonError, jsonSuccess } from "../../../../lib/apiResponse";
 
 export const POST = async (req) => {
-  // console.log("==============webhooks Start=========");
-  try {
-    const rawBody = await req.text();
-    const signature = req.headers.get("Stripe-Signature");
+  const rawBody = await req.text();
+  const signature = req.headers.get("Stripe-Signature");
 
-    const event = stripe.webhooks.constructEvent(
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.error("[webhooks] STRIPE_WEBHOOK_SECRET is not configured.");
+    return jsonError("Webhook secret is not configured.", 500);
+  }
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(
       rawBody,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET
     );
+  } catch (err) {
+    console.error("[webhooks] signature verification failed:", err.message);
+    return jsonError("Invalid signature.", 400);
+  }
 
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object;
-      // console.log("session:", session);
-      const customerInfo = {
-        userId: session?.client_reference_id,
-        name: session?.customer_details?.name,
-        email: session?.customer_details?.email,
-      };
-
-      // console.log("customerInfo:", customerInfo);
-
-      const shippingAddress = {
-        country: session?.shipping_details?.address?.country,
-        city: session?.shipping_details?.address?.city,
-        street: session?.shipping_details?.address?.line2,
-        state: session?.shipping_details?.address?.line2,
-        postalCode: session?.shipping_details?.address?.postal_code,
-      };
-      // console.log("shippingAddress:", shippingAddress);
-      const retrieveSession = await stripe.checkout.sessions.retrieve(
-        session.id,
-        { expand: ["line_items.data.price.product"] }
-      );
-
-      const lineItems = await retrieveSession?.line_items?.data;
-
-      const orderItems = lineItems?.map((item) => {
-        return {
-          product: item.price.product.metadata.productId,
-          color: item.price.product.metadata.color || "N/A",
-          size: item.price.product.metadata.size || "N/A",
-          quantity: item.quantity,
-        };
-      });
-
-      await connectMongodb();
-
-      const newOrder = new OrderModel({
-        customerUserkId: customerInfo.userId,
-        products: orderItems,
-        shippingAddress,
-        currency: session.currency,
-        shippingRate: session?.shipping_cost?.shipping_rate,
-        totalAmount: session.amount_total ? session.amount_total / 100 : 0,
-      });
-
-      await newOrder.save();
-
-      let customer = await CustomerModel.findOne({
-        userId: customerInfo.userId,
-      });
-      // console.log("customer find userModel:", customer);
-      if (customer) {
-        customer.orders.push(newOrder._id);
-      } else {
-        customer = new CustomerModel({
-          ...customerInfo,
-          orders: [newOrder._id],
-        });
+  switch (event.type) {
+    case "checkout.session.completed": {
+      try {
+        const result = await confirmPaidOrder(event.data.object);
+        return jsonSuccess(
+          result,
+          result.created ? "Order created successfully." : "Order already exists.",
+          200
+        );
+      } catch (err) {
+        console.error("[webhooks] order confirmation failed:", err);
+        return jsonError("Failed to confirm order.", 500);
       }
-
-      await customer.save();
     }
 
-    return new NextResponse("Order created", { status: 200 });
-  } catch (err) {
-    console.log("[webhooks_POST]", err);
-    return new NextResponse("Failed to create the order", { status: 500 });
+    case "checkout.session.expired": {
+      try {
+        const result = await cancelOrderBySessionId(event.data.object?.id);
+        return jsonSuccess(result, "Pending order cancelled.", 200);
+      } catch (err) {
+        console.error("[webhooks] order cancellation failed:", err);
+        return jsonError("Failed to cancel order.", 500);
+      }
+    }
+
+    case "payment_intent.cancelled": {
+      try {
+        const result = await cancelOrderByPaymentIntent(event.data.object?.id);
+        return jsonSuccess(result, "Pending order cancelled.", 200);
+      } catch (err) {
+        console.error("[webhooks] order cancellation failed:", err);
+        return jsonError("Failed to cancel order.", 500);
+      }
+    }
+
+    default:
+      return jsonSuccess({}, "Event ignored.", 200);
   }
 };

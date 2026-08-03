@@ -1,29 +1,28 @@
-// import Product from "@/lib/models/Product";
-
-import { NextResponse } from "next/server";
-import OrderModel from "../../../../../../lib/models/OrderModel";
+import { getSessionFromRequest } from "../../../../../../lib/auth";
 import { connectMongodb } from "../../../../../../lib/mongodb";
+import OrderModel from "../../../../../../lib/models/OrderModel";
 import ProductModel from "../../../../../../lib/models/ProductModel";
+import { jsonError, jsonSuccess } from "../../../../../../lib/apiResponse";
 
 export const GET = async (req, { params }) => {
+  const session = await getSessionFromRequest(req);
+  if (!session) return jsonError("Unauthorized.", 401);
+
+  const { customerId } = params;
+  const isOwner = customerId === session.id;
+  const isAdmin = session.role === "admin";
+  if (!isOwner && !isAdmin) return jsonError("Forbidden.", 403);
+
   try {
     await connectMongodb();
 
-    const orders = await OrderModel.find({
-      customerUserkId: params?.customerId,
-    }).populate({ path: "products.product", model: ProductModel });
-    // console.log("orders:", orders);
-    return NextResponse.json(orders, { status: 200 });
+    const orders = await OrderModel.find({ customerUserId: customerId })
+      .sort({ createdAt: "desc" })
+      .populate({ path: "products.product", model: ProductModel });
+
+    return jsonSuccess({ data: orders });
   } catch (err) {
-    console.log("[customerId_GET", err);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    console.error("[customerId_GET]", err);
+    return jsonError("Failed to load orders.");
   }
 };
-
-export const dynamic = "force-dynamic";
-/*
-await OrderModel.findById(params.orderId).populate({
-      path: "products.product",
-      model: ProductModel,
-    });
-*/

@@ -1,161 +1,132 @@
 import Image from "next/image";
-import { BASEURL } from "../page";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import Link from "next/link";
+import { getSession } from "@lib/auth";
+import { connectMongodb } from "@lib/mongodb";
+import OrderModel from "@lib/models/OrderModel";
+import ProductModel from "@lib/models/ProductModel";
+import StatusPill from "@/components/StatusPill";
+import OrderTimeline from "@/components/OrderTimeline";
+import { formatPrice } from "@lib/format";
+import { getPaymentStatus, getOrderStatus } from "@lib/orderStatus";
+import { PackageSearch } from "lucide-react";
+
+export const dynamic = "force-dynamic";
 
 const Orders = async () => {
-  const session = await getServerSession(authOptions);
-  const res = await fetch(`${BASEURL}/api/order/customer/${session?.user._id}`);
-  const orders = await res.json();
+  const session = await getSession();
+  if (!session) return null;
+
+  let orders = [];
+  try {
+    await connectMongodb();
+    orders = await OrderModel.find({ customerUserId: session.id })
+      .sort({ createdAt: "desc" })
+      .populate({ path: "products.product", model: ProductModel })
+      .lean();
+  } catch (error) {
+    console.error("[orders]", error);
+  }
 
   return (
-    <div className="px-10 py-5 max-sm:px-3">
-      <p className="text-heading3-bold my-10 text-center ">Your Orders</p>
-      {!orders ||
-        (orders.length === 0 && (
-          <p className="text-body-bold my-5 text-center ">
-            You have no orders yet.
-          </p>
-        ))}
+    <div className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6">
+      <h1 className="text-2xl font-bold text-slate-900">Your Orders</h1>
+      <hr className="my-6 border-slate-200" />
 
-      <div className="flex flex-col gap-10 items-center justify-center ">
-        {orders?.map((order) => (
-          <div
-            key={order?._id}
-            className="flex flex-col gap-8 p-4 hover:bg-grey-1"
-          >
-            <div className="flex gap-20 max-md:flex-col max-md:gap-3">
-              <p className="text-base-bold">Order ID: {order._id}</p>
-              <p className="text-base-bold">
-                Total Amount: ${order?.totalAmount}
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-5">
-              {order?.products.map((orderItem) => (
-                <div key={orderItem?.product?._id} className="flex gap-4">
-                  <Image
-                    src={orderItem?.product.media[0]}
-                    alt={orderItem?.product.title}
-                    width={100}
-                    height={100}
-                    className="w-32 h-32 object-cover rounded-lg"
-                  />
-                  <div className="flex flex-col justify-between">
-                    <p className="text-small-medium">
-                      Title:{" "}
-                      <span className="text-small-bold">
-                        {orderItem.product.title}
-                      </span>
+      {!orders || orders.length === 0 ? (
+        <div className="flex flex-col items-center gap-4 py-16 text-center">
+          <PackageSearch className="h-12 w-12 text-slate-300" />
+          <p className="text-slate-500">You have no orders yet.</p>
+          <Link href="/" className="btn-primary">
+            Start shopping
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {orders.map((order) => (
+            <div
+              key={order?._id}
+              className="rounded-xl border border-slate-200 bg-white p-5"
+            >
+              <div className="flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">
+                    Order ID
+                  </p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {String(order._id)}
+                  </p>
+                </div>
+                <div className="flex gap-8">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-400">
+                      Placed
                     </p>
-                    {orderItem.color && (
-                      <p className="text-small-medium">
-                        Color:{" "}
-                        <span className="text-small-bold">
-                          {orderItem.color}
-                        </span>
-                      </p>
-                    )}
-                    {orderItem.size && (
-                      <p className="text-small-medium">
-                        Size:{" "}
-                        <span className="text-small-bold">
-                          {orderItem.size}
-                        </span>
-                      </p>
-                    )}
-                    <p className="text-small-medium">
-                      Unit price:{" "}
-                      <span className="text-small-bold">
-                        {parseFloat(
-                          orderItem.product.price["$numberDecimal"] ?? 0
-                        ).toFixed(2)}
-                        {/* {orderItem.product.price} */}
-                      </span>
-                    </p>
-                    <p className="text-small-medium">
-                      Quantity:{" "}
-                      <span className="text-small-bold">
-                        {orderItem.quantity}
-                      </span>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {new Date(order.createdAt).toLocaleDateString()}
                     </p>
                   </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-400">
+                      Total
+                    </p>
+                    <p className="text-sm font-bold text-indigo-600">
+                      ${formatPrice(order.totalAmount)}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="flex items-center gap-2">
+                      <StatusPill kind="payment" value={getPaymentStatus(order)} />
+                      <StatusPill kind="order" value={getOrderStatus(order)} />
+                    </div>
+                    <Link
+                      href={`/orders/${order._id}`}
+                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
+                    >
+                      View details →
+                    </Link>
+                  </div>
                 </div>
-              ))}
+              </div>
+
+            <div className="mt-4 rounded-lg bg-slate-50 px-4 py-4">
+                <OrderTimeline status={getOrderStatus(order)} />
+              </div>
+
+              <div className="mt-4 space-y-4">
+                {order?.products?.map((orderItem) => (
+                  <div
+                    key={orderItem?.product?._id}
+                    className="flex items-center gap-4"
+                  >
+                    <Image
+                      src={orderItem?.product?.media?.[0] || "/placeholder.svg"}
+                      alt={orderItem?.product?.title || "Product"}
+                      width={100}
+                      height={100}
+                      className="h-20 w-20 rounded-lg object-cover"
+                    />
+                    <div className="flex-1">
+                      <p className="font-semibold text-slate-900">
+                        {orderItem?.product?.title}
+                      </p>
+                      <p className="text-sm text-slate-500">
+                        Qty: {orderItem.quantity}
+                        {orderItem.color && ` · ${orderItem.color}`}
+                        {orderItem.size && ` · ${orderItem.size}`}
+                      </p>
+                    </div>
+                    <p className="font-semibold text-slate-900">
+                      ${formatPrice(orderItem?.product?.price)}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
 
 export default Orders;
-
-export const dynamic = "force-dynamic";
-
-/*
- {!orders ||
-        (orders.length === 0 && (
-          <p className="text-body-bold my-5">You have no orders yet.</p>
-        ))}
-
-      <div className="flex flex-col gap-10">
-        {orders?.map((order: OrderType) => (
-          <div className="flex flex-col gap-8 p-4 hover:bg-grey-1">
-            <div className="flex gap-20 max-md:flex-col max-md:gap-3">
-              <p className="text-base-bold">Order ID: {order._id}</p>
-              <p className="text-base-bold">
-                Total Amount: ${order.totalAmount}
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-5">
-              {order.products.map((orderItem: OrderItemType) => (
-                <div className="flex gap-4">
-                  <Image
-                    src={orderItem.product.media[0]}
-                    alt={orderItem.product.title}
-                    width={100}
-                    height={100}
-                    className="w-32 h-32 object-cover rounded-lg"
-                  />
-                  <div className="flex flex-col justify-between">
-                    <p className="text-small-medium">
-                      Title:{" "}
-                      <span className="text-small-bold">
-                        {orderItem.product.title}
-                      </span>
-                    </p>
-                    {orderItem.color && (
-                      <p className="text-small-medium">
-                        Color:{" "}
-                        <span className="text-small-bold">
-                          {orderItem.color}
-                        </span>
-                      </p>
-                    )}
-                    {orderItem.size && (
-                      <p className="text-small-medium">
-                        Size:{" "}
-                        <span className="text-small-bold">
-                          {orderItem.size}
-                        </span>
-                      </p>
-                    )}
-                    <p className="text-small-medium">
-                      Unit price:{" "}
-                      <span className="text-small-bold">{orderItem.product.price}</span>
-                    </p>
-                    <p className="text-small-medium">
-                      Quantity:{" "}
-                      <span className="text-small-bold">{orderItem.quantity}</span>
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-*/

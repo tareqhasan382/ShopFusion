@@ -6,29 +6,29 @@ import { AuthProvider } from "@/Providers";
 const inter = Inter({ subsets: ["latin"] });
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { getServerSession } from "next-auth";
+import { getSession } from "@lib/auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "../api/auth/[...nextauth]/route";
+
 export const metadata = {
   title: "Dashboard",
-  description: "e-commerce-Dashboard-Page",
+  description: "ShopFusion admin dashboard",
 };
 
 export default async function AdminLayout({ children }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user || session?.user?.role !== "admin") redirect("/sign-in");
+  const session = await getSession();
+  if (!session || session.role !== "admin") redirect("/sign-in");
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <body className={inter.className}>
+      <body className={`${inter.className} min-h-screen bg-slate-50`}>
         <AuthProvider>
-          <ToastContainer />
-          <div className=" w-full flex max-lg:flex-col ">
-            <div className=" bg-white sticky top-0 z-50">
-              <LeftSideBar />
+          <ToastContainer position="bottom-right" theme="light" />
+          <div className="flex min-h-screen max-lg:flex-col lg:h-screen">
+            <LeftSideBar />
+            <div className="flex min-w-0 flex-1 flex-col lg:overflow-hidden">
               <TopBar />
-            </div>
-            <div className=" w-full flex-1 p-5 items-center justify-center ">
-              {children}
+              <main className="mx-auto w-full max-w-7xl min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+                {children}
+              </main>
             </div>
           </div>
         </AuthProvider>

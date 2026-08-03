@@ -1,103 +1,101 @@
 "use client";
-import { BASEURL } from "@/app/(home)/page";
-import Pagination from "@/components/Dashboard/Pagination";
+import { BASEURL } from "@lib/config";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import FormateDate from "@/components/FormateDate";
-import Loader from "@/components/Loader";
 import React, { useEffect, useState } from "react";
-const getCustomers = async ({ page, limit }) => {
-  try {
-    const result = await fetch(
-      `${BASEURL}/api/customer?page=${page}&limit=${limit || ""}`,
-      {
-        method: "GET",
-        cache: "no-store",
-      }
-    );
-    if (!result.ok) {
-      throw new Error("Failed to update data");
-    }
+import DataTable from "@/components/Dashboard/DataTable";
 
-    const data = await result.json();
-    return await data;
+const getCustomers = async ({ page, limit, search }) => {
+  try {
+    const params = new URLSearchParams({ page });
+    if (limit) params.set("limit", limit);
+    if (search) params.set("search", search);
+    const result = await fetch(
+      `${BASEURL}/api/customer?${params.toString()}`,
+      { method: "GET", cache: "no-store" }
+    );
+    if (!result.ok) throw new Error("Failed to load customers");
+    return result.json();
   } catch (error) {
     console.log(error);
+    return null;
   }
 };
-const Customers = ({ searchParams }) => {
-  const [loading, setLoading] = useState(false);
-  const [customers, setCustomers] = useState([]);
-  const page = parseInt(searchParams?.page) || 1;
-  const limit = 10;
-  const per_page_data = 10;
-  const hasPrev = per_page_data * (page - 1) > 0;
-  const hasNext = per_page_data * (page - 1) + per_page_data < customers?.total;
 
-  const customerData = async ({ page, limit }) => {
-    setLoading(true);
-    const data = await getCustomers({ page, limit });
-    setLoading(false);
-    setCustomers(data);
-  };
+const Customers = ({ searchParams }) => {
+  const router = useRouter();
+  const [customers, setCustomers] = useState({ data: [], total: 0 });
+  const [loading, setLoading] = useState(true);
+  const page = parseInt(searchParams?.page) || 1;
+  const search = searchParams?.search || "";
+  const limit = parseInt(searchParams?.limit) || 10;
+
   useEffect(() => {
-    customerData({ page, limit });
-  }, [page, limit]);
+    const load = async () => {
+      setLoading(true);
+      const data = await getCustomers({ page, limit, search });
+      setCustomers(data || { data: [], total: 0 });
+      setLoading(false);
+    };
+    load();
+  }, [page, limit, search]);
+
+  const columns = [
+    {
+      key: "name",
+      label: "Name",
+      render: (item) => (
+        <Link
+          href={`/admin/customers/${item._id}`}
+          className="font-medium text-slate-900 transition-colors hover:text-indigo-600 hover:underline"
+        >
+          {item.name || "Customer"}
+        </Link>
+      ),
+    },
+    {
+      key: "email",
+      label: "Email",
+      render: (item) => <span className="text-slate-600">{item.email}</span>,
+    },
+    {
+      key: "orders",
+      label: "Orders",
+      render: (item) => (
+        <span className="inline-block rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+          {item.orders?.length ?? 0}
+        </span>
+      ),
+    },
+    {
+      key: "createdAt",
+      label: "Joined",
+      render: (item) => <FormateDate date={item.createdAt} />,
+    },
+  ];
 
   return (
-    <div>
-      <div className=" flex flex-col gap-5 py-5 ">
-        <h1 className=" text-heading2-bold "> Customers</h1>
-        <div>
-          <div className="border-b border-gray-700 my-4"></div>
-          <div className="overflow-x-auto">
-            {loading && <Loader />}
-            <table className="min-w-full table-auto border-collapse">
-              <thead className=" hover:bg-red-200 bg-red-300 ">
-                <tr>
-                  <th className="px-4 py-2  text-left">Id</th>
-                  <th className="px-4 py-2  text-left">customer</th>
-                  <th className="px-4 py-2 text-left">Email</th>
-                  <th className="px-4 py-2 text-left">Orders</th>
-                  <th className="px-4 py-2 text-left">CreatedAt</th>
-                </tr>
-              </thead>
-              <tbody>
-                {!loading && customers?.data?.length > 0 ? (
-                  customers?.data.map((item) => (
-                    <tr key={item._id} className=" hover:bg-gray-300 ">
-                      <td className="border px-4 py-2" data-label="Name">
-                        {item._id}
-                      </td>
-                      <td className="border px-4 py-2" data-label="Name">
-                        {item?.name}
-                      </td>
-                      <td className="border px-4 py-2" data-label="Name">
-                        {item?.email}
-                      </td>
-                      <td className="border px-4 py-2" data-label="Name">
-                        {item?.orders.length}
-                      </td>
-                      <td className="border px-4 py-2" data-label="Name">
-                        <FormateDate date={item?.createdAt} />
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan="4"
-                      className="text-center py-2 text-body-bold "
-                    >
-                      No Data found in Orders!
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      <Pagination page={page} hasNext={hasNext} hasPrev={hasPrev} />
-    </div>
+    <DataTable
+      columns={columns}
+      rows={customers?.data || []}
+      loading={loading}
+      page={page}
+      total={customers?.total || 0}
+      pageSize={limit}
+      searchValue={search}
+      onSearch={(q) => {
+        router.push(`?page=1&limit=${limit}${q ? `&search=${encodeURIComponent(q)}` : ""}`);
+      }}
+      onPageChange={(p) => {
+        router.push(`?page=${p}&limit=${limit}${search ? `&search=${encodeURIComponent(search)}` : ""}`);
+      }}
+      onPageSizeChange={(l) => {
+        router.push(`?page=1&limit=${l}${search ? `&search=${encodeURIComponent(search)}` : ""}`);
+      }}
+      searchPlaceholder="Search name or email…"
+      emptyMessage="No customers yet."
+    />
   );
 };
 

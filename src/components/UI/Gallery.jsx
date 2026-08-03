@@ -1,32 +1,45 @@
-"use client"
+"use client";
 import Image from "next/image";
-import React, { useState } from "react";
+import { useState } from "react";
 
 const Gallery = ({ productMedia }) => {
-  const [mainImage, setMainImage] = useState(productMedia[0]);
+  const [mainImage, setMainImage] = useState(productMedia?.[0] || "/placeholder.svg");
+
   return (
-    <div className="flex flex-col gap-3 max-w-[500px">
-      <Image
-        src={mainImage}
-        width={500}
-        height={500}
-        alt="product"
-        priority
-        className="w-96 h-96 rounded-lg shadow-xl object-cover"
-      />
-      <div className="flex gap-2 overflow-auto tailwind-scrollbar-hide">
-        {productMedia?.map((image, index) => (
-          <Image
-            key={index}
-            src={image}
-            height={200}
-            width={200}
-            alt="product"
-            className={`w-20 h-20 rounded-lg object-cover cursor-pointer ${mainImage === image ? "border-2 border-black" : ""}`}
-            onClick={() => setMainImage(image)}
-          />
-        ))}
+    <div className="flex flex-col gap-4">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+        <Image
+          src={mainImage}
+          width={500}
+          height={500}
+          alt="Product"
+          priority
+          className="aspect-square w-full max-w-[500px] object-cover"
+        />
       </div>
+      {productMedia?.length > 1 && (
+        <div className="flex gap-3 overflow-x-auto pb-1">
+          {productMedia.map((image, index) => (
+            <button
+              key={index}
+              onClick={() => setMainImage(image)}
+              className={`shrink-0 overflow-hidden rounded-lg border-2 transition-colors ${
+                mainImage === image
+                  ? "border-indigo-600"
+                  : "border-transparent hover:border-slate-300"
+              }`}
+            >
+              <Image
+                src={image}
+                height={200}
+                width={200}
+                alt="Product thumbnail"
+                className="h-20 w-20 object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
