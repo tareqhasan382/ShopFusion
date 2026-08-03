@@ -3,9 +3,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/Providers";
 import { AuthShell } from "@/components/AuthShell";
+
+const ADMIN_EMAIL = "admin@shopfusion.com";
+const ADMIN_PASSWORD = "admin123";
 
 const SignInForm = ({ next }) => {
   const router = useRouter();
@@ -47,6 +50,22 @@ const SignInForm = ({ next }) => {
     } else {
       if (result.errors) setErrors(result.errors);
       toast.error(result.message || "Failed to sign in.");
+    }
+  };
+
+  const handleAdminLogin = async () => {
+    setFormData({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD });
+    setErrors({});
+    setLoading(true);
+    const result = await login(ADMIN_EMAIL, ADMIN_PASSWORD);
+    setLoading(false);
+
+    if (result.ok) {
+      toast.success("Signed in as admin.");
+      router.replace(next || "/admin");
+      router.refresh();
+    } else {
+      toast.error(result.message || "Admin sign-in failed.");
     }
   };
 
@@ -129,6 +148,22 @@ const SignInForm = ({ next }) => {
           ) : (
             "Sign in"
           )}
+        </button>
+
+        <div className="relative flex items-center gap-3 py-1">
+          <span className="h-px flex-1 bg-slate-200" />
+          <span className="text-xs font-medium text-slate-400">or</span>
+          <span className="h-px flex-1 bg-slate-200" />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleAdminLogin}
+          disabled={loading}
+          className="btn-secondary w-full"
+        >
+          <ShieldCheck className="h-4 w-4 text-indigo-600" />
+          Login as Admin
         </button>
       </form>
     </AuthShell>
