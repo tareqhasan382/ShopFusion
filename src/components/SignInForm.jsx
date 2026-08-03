@@ -7,8 +7,8 @@ import { Eye, EyeOff, Lock, Mail, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/Providers";
 import { AuthShell } from "@/components/AuthShell";
 
-const ADMIN_EMAIL = "admin@shopfusion.com";
-const ADMIN_PASSWORD = "admin123";
+const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "";
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "";
 
 const SignInForm = ({ next }) => {
   const router = useRouter();
@@ -150,21 +150,25 @@ const SignInForm = ({ next }) => {
           )}
         </button>
 
-        <div className="relative flex items-center gap-3 py-1">
-          <span className="h-px flex-1 bg-slate-200" />
-          <span className="text-xs font-medium text-slate-400">or</span>
-          <span className="h-px flex-1 bg-slate-200" />
-        </div>
+        {ADMIN_EMAIL && ADMIN_PASSWORD && (
+          <>
+            <div className="relative flex items-center gap-3 py-1">
+              <span className="h-px flex-1 bg-slate-200" />
+              <span className="text-xs font-medium text-slate-400">or</span>
+              <span className="h-px flex-1 bg-slate-200" />
+            </div>
 
-        <button
-          type="button"
-          onClick={handleAdminLogin}
-          disabled={loading}
-          className="btn-secondary w-full"
-        >
-          <ShieldCheck className="h-4 w-4 text-indigo-600" />
-          Login as Admin
-        </button>
+            <button
+              type="button"
+              onClick={handleAdminLogin}
+              disabled={loading}
+              className="btn-secondary w-full"
+            >
+              <ShieldCheck className="h-4 w-4 text-indigo-600" />
+              Login as Admin
+            </button>
+          </>
+        )}
       </form>
     </AuthShell>
   );
